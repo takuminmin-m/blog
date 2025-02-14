@@ -18,5 +18,10 @@ html
     = stylesheet_link_tag :app, "data-turbo-track": "reload"
     = javascript_importmap_tags
   body
-    main.container.mx-auto.mt-28.px-5.flex
-      = yield
+    p
+      = link_to "home", root_path
+    p
+      = link_to "about", about_path
+    p
+      = link_to "articles", articles_path
+    = yield
