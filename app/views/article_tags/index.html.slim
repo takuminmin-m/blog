@@ -1,0 +1,4 @@
+dev
+  - @article_tags.each do |article_tag|
+    p
+      = link_to article_tag.name, article_tag_path(article_tag.name)

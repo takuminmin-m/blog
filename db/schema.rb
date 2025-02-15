@@ -10,12 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_14_083131) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_14_104117) do
   create_table "article_tags", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_article_tags_on_name", unique: true
+  end
+
+  create_table "article_to_tag_relations", force: :cascade do |t|
+    t.integer "article_id", null: false
+    t.integer "article_tag_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id"], name: "index_article_to_tag_relations_on_article_id"
+    t.index ["article_tag_id"], name: "index_article_to_tag_relations_on_article_tag_id"
   end
 
   create_table "articles", force: :cascade do |t|
@@ -26,4 +35,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_14_083131) do
     t.index ["filename"], name: "index_articles_on_filename", unique: true
     t.index ["title"], name: "index_articles_on_title", unique: true
   end
+
+  add_foreign_key "article_to_tag_relations", "article_tags"
+  add_foreign_key "article_to_tag_relations", "articles"
 end

@@ -1,11 +1,20 @@
+require_relative "../../app/helpers/markdown_helper.rb"
+include MarkdownHelper
+
 # TODO: implement update article function
 def sync_articles
   dir = Rails.root.join("content/articles")
   Dir.glob("#{dir}/*.md") do |file|
     filename = File.basename(file, ".md")
 
+    params = read_yaml_frontmatter(File.read("#{dir}/#{filename}.md"))
+    article_tags = params["tags"].map do |article_tag|
+      ArticleTag.find_or_create_by(name: article_tag)
+    end
+
     article = Article.find_or_initialize_by(filename: filename)
-    article.title = filename
+    article.title = params["title"]
+    article.article_tags = article_tags
     article.save!
   end
 end
