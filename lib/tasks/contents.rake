@@ -17,25 +17,46 @@ def sync_articles
     article.article_tags = article_tags
     article.save!
   end
+
+  Dir.glob("#{dir}/images/*.{jpg,JPG,jpeg,JPEG,png,PNG}") do |file|
+    # avoid ActiveJob::SerializationError
+    # p file.class
+    filename = File.basename(file)
+
+    picture = Picture.find_or_initialize_by(filename: filename)
+    picture.image.attach(io: File.open(file), filename: filename)
+    picture.artwork = false
+    picture.save!
+  end
 end
 
-# TODO: implement this
-# def sync_pictures
-# end
+# Sync gallery photos
+# artwork? flag of Picture model is true.
+def sync_gallery
+  dir = Rails.root.join("content/gallery")
+  Dir.glob("#{dir}/*.{jpg,JPG,jpeg,JPEG,png,PNG}") do |file|
+    filename = File.basename(file)
+
+    picture = Picture.find_or_initialize_by(filename: filename)
+    picture.image.attach(io: File.open(file), filename: filename)
+    picture.artwork = true
+    picture.save!
+  end
+end
 
 namespace :contents do
   desc "Sync contents with database"
 
   task sync: :environment do
     sync_articles
-    # sync_pictures
+    sync_gallery
   end
 
   task sync_articles: :environment do
     sync_articles
   end
 
-  task sync_pictures: :environment do
-    # sync_pictures
+  task sync_gallery: :environment do
+    sync_gallery
   end
 end
