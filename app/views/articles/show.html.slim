@@ -2,5 +2,5 @@ h1 = @article.title
 p
   - @article.article_tags.each do |article_tag|
     span.tag = link_to article_tag.name, article_tag_path(article_tag.name)
-p
-  = markdown(@content)
+div
+  = markdown(@article.body)
