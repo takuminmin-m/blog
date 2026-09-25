@@ -1,8 +1,16 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+# House rules (see "Conventions" in CLAUDE.md). Omakase only enforces layout and a few
+# style rules; these departments add cops that catch bugs and Rails pitfalls instead.
+AllCops:
+  NewCops: enable
+
+Lint:
+  Enabled: true
+
+Rails:
+  Enabled: true
+
+Security:
+  Enabled: true

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+require "rubygems"
+require "bundler/setup"
+
+# Lint every template unless files are given. Paths stay relative to the app root so they
+# match the include/exclude globs in .slim-lint.yml.
+if ARGV.empty?
+  Dir.chdir(File.expand_path("..", __dir__))
+  ARGV.push("app/views")
+end
+
+load Gem.bin_path("slim_lint", "slim-lint")

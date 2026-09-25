@@ -1,0 +1,19 @@
+# Slim template rules (see "Conventions" in CLAUDE.md), on top of slim-lint's defaults:
+# https://github.com/sds/slim-lint/blob/main/config/default.yml
+# The RuboCop linter checks Ruby in templates against .rubocop.yml.
+linters:
+  # Tailwind class lists make long lines unavoidable, and the Ruby style has no limit either.
+  LineLength:
+    enabled: false
+
+  # Partials take their data as locals rather than reaching for the controller's ivars.
+  # (Overriding a linter replaces its whole default config, so include is repeated here.)
+  InstanceVariables:
+    enabled: true
+    include:
+      - app/views/**/_*.html.slim
+
+  # Match Ruby's double-quoted strings.
+  QuoteConsistency:
+    enabled: true
+    enforced_style: double_quotes

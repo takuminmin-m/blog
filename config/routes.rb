@@ -11,8 +11,8 @@ Rails.application.routes.draw do
 
   get "about", to: "static_pages#about"
 
-  resources :articles, only: [:index, :show], param: :filename
-  resources :article_tags, only: [:index, :show], param: :name
+  resources :articles, only: [ :index, :show ], param: :filename
+  resources :article_tags, only: [ :index, :show ], param: :name
 
   get "image", to: "images#show"
 end
