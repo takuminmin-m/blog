@@ -62,6 +62,9 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+      - name: Lint Slim templates
+        run: bin/slim-lint
+
   test:
     runs-on: ubuntu-latest
 

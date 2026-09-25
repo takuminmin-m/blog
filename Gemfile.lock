@@ -381,6 +381,10 @@ GEM
       actionpack (>= 7.0)
       railties (>= 7.0)
       slim (>= 3.0, < 6.0, != 5.0.0)
+    slim_lint (0.37.0)
+      rexml (~> 3.2)
+      rubocop (>= 1.0, < 2.0)
+      slim (>= 3.0, < 6.0)
     solargraph (0.60.4)
       ast (~> 2.4.3)
       backport (~> 1.2)
@@ -523,6 +527,7 @@ DEPENDENCIES
   ruby-vips (~> 2.3)
   selenium-webdriver
   slim-rails
+  slim_lint
   solargraph
   solid_cable
   solid_cache
