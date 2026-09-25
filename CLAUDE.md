@@ -17,7 +17,7 @@ bin/rubocop               # rubocop-rails-omakase (-a to autocorrect)
 bin/ci                    # local CI: runs the steps in config/ci.rb (setup, rubocop, audits, brakeman, tests)
 ```
 
-- `bin/dev` doesn't export `PORT`, so foreman's default applies and the app is at **http://localhost:5000** (plain `bin/rails server` uses 3000).
+- `bin/dev` is tailwindcss-rails' template: it defaults `PORT` to 3000 (foreman alone would pick 5000) and sets `RUBY_DEBUG_OPEN`, so attach to `debugger` breakpoints with `rdbg --attach`. Installers such as `dartsass:install` overwrite it with a version that drops both.
 - Compiled CSS goes to the gitignored `app/assets/builds/`; without the watchers running, use `bin/rails tailwindcss:build dartsass:build`.
 - Image variants require **libvips** (Rails' default variant processor; the Dockerfile installs it). macOS: `brew install vips`. image_processing 2.x no longer pulls in `ruby-vips`, so the Gemfile lists it explicitly with `require: false` — that keeps Rails bootable on machines without libvips.
 - CI (`.github/workflows/ci.yml`) runs `bin/brakeman --no-pager`, `bin/importmap audit`, `bin/rubocop -f github`, and `bin/rails db:test:prepare test`, with system tests in a separate job.
