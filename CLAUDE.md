@@ -13,20 +13,21 @@ bin/setup                 # bundle install, db:prepare, clear logs/tmp, then exe
 bin/dev                   # foreman (Procfile.dev): rails server + tailwindcss:watch + dartsass:watch
 bin/rails contents:sync   # import content/ into the DB (also: contents:sync_articles, contents:sync_gallery)
 bin/rails test            # whole suite; one file/test: bin/rails test test/models/article_test.rb[:LINE]
-bin/rubocop               # rubocop-rails-omakase (-a to autocorrect)
-bin/ci                    # local CI: runs the steps in config/ci.rb (setup, rubocop, audits, brakeman, tests)
+bin/rubocop               # Ruby lint, see Conventions (-a to autocorrect)
+bin/slim-lint             # Slim template lint (all of app/views unless files are given)
+bin/ci                    # local CI: runs the steps in config/ci.rb (setup, rubocop, slim-lint, audits, brakeman, tests)
 ```
 
 - `bin/dev` is tailwindcss-rails' template: it defaults `PORT` to 3000 (foreman alone would pick 5000) and sets `RUBY_DEBUG_OPEN`, so attach to `debugger` breakpoints with `rdbg --attach`. Installers such as `dartsass:install` overwrite it with a version that drops both.
 - Compiled CSS goes to the gitignored `app/assets/builds/`; without the watchers running, use `bin/rails tailwindcss:build dartsass:build`.
-- Image variants require **libvips** (Rails' default variant processor; the Dockerfile installs it). macOS: `brew install vips`. image_processing 2.x no longer pulls in `ruby-vips`, so the Gemfile lists it explicitly with `require: false` — that keeps Rails bootable on machines without libvips.
-- CI (`.github/workflows/ci.yml`) runs `bin/brakeman --no-pager`, `bin/importmap audit`, `bin/rubocop -f github`, and `bin/rails db:test:prepare test`, with system tests in a separate job.
+- Image variants require **libvips** (Rails' default variant processor; the Dockerfile and the CI test job install it), and so does the watermark test in `test/models/picture_test.rb`, which errors with `LoadError` without it. macOS: `brew install vips`. image_processing 2.x no longer pulls in `ruby-vips`, so the Gemfile lists it explicitly with `require: false` — that keeps Rails bootable on machines without libvips.
+- CI (`.github/workflows/ci.yml`) runs `bin/brakeman --no-pager`, `bin/importmap audit`, `bin/rubocop -f github`, `bin/slim-lint`, and `bin/rails db:test:prepare test`, with system tests in a separate job.
 
 ## Architecture
 
 ### Content lives outside the repo
 
-Articles, the about page, and all images come from `content/`; those pages fail without it:
+Articles, the about page, and all images come from `content/` — `Rails.configuration.x.content_root`, set in `config/application.rb` and pointed at `test/fixtures/files/content` in tests; those pages fail without it:
 
 ```
 content/
@@ -37,14 +38,19 @@ content/
   overlay.png                       # watermark composited onto every Picture variant
 ```
 
-- **Sync (write path):** `lib/tasks/contents.rake` upserts DB rows from `content/` — `Article` keyed by `filename` (basename without `.md`) with `title` from front matter, tags via `ArticleToTagRelation` → `ArticleTag`, and every image attached to a `Picture` through Active Storage. It never deletes rows for removed files. Re-run after adding files or changing a title/tags.
-- **Render (read path):** `ArticlesController#show` finds the `Article` by filename, then reads `content/articles/<filename>.md` from disk on every request. The DB holds only metadata, so body edits need no resync.
-- **`MarkdownHelper` is shared by both paths:** the rake file `include`s it at top level for `read_yaml_frontmatter`; views call `markdown` (Redcarpet, `filter_html: true` — raw HTML in Markdown is stripped). `markdown` raises `TypeError` on text without a `---` front matter block, so every rendered file, including `about.md`, needs front matter.
+- **Sync (write path):** `ContentSync` (`app/models/content_sync.rb`; the `contents:*` rake tasks only call it) upserts DB rows from `content/` — `Article` keyed by `filename` (basename without `.md`) with `title` from front matter, tags via `ArticleToTagRelation` → `ArticleTag`, and every image attached to a `Picture` through Active Storage. It never deletes rows for removed files. Re-run after adding files or changing a title/tags.
+- **Render (read path):** `ArticlesController#show` finds the `Article` by filename, and `Article#body` reads `content/articles/<filename>.md` from disk on every request. The DB holds only metadata, so body edits need no resync. `Article` validates that `filename` contains no path separators, since it becomes part of that path.
+- **Parsing vs. rendering:** `MarkdownDocument` splits the optional YAML front matter from the body (`YAML.safe_load`, so no dates or symbols in front matter) for both paths; views call `markdown(body)` from `MarkdownHelper` (Redcarpet with `filter_html: true` — raw HTML in Markdown is stripped, which is what makes marking the output `html_safe` safe).
 - Routes use natural keys, not ids: `/articles/:filename`, `/article_tags/:name` (`param:` in `config/routes.rb`). Lookups use `find_by`, so unknown keys produce a 500 rather than a 404.
 
 ### Pictures
 
-`Picture` declares named variants with `preprocessed: true` (Active Storage enqueues transform jobs on attach); every variant composites `content/overlay.png` at the south-east corner. Active Storage uses the Disk service in dev and prod (`storage/`).
+`Picture` declares named variants: the article ones are `preprocessed: true` and the gallery ones `preprocessed: :artwork?`, so attaching enqueues an `ActiveStorage::TransformJob` per preprocessed variant. Every variant composites `content/overlay.png` at the south-east corner, and two details of that config are load-bearing:
+
+- `OVERLAY` is a String because the transformations become Active Job arguments, and Active Job can't serialize a Pathname (attaching raised `ActiveJob::SerializationError`).
+- `composite:` is an Array, `[ path, { gravity: } ]`. A Hash would be splatted into keyword arguments, but image_processing's `composite` takes the overlay positionally (`ArgumentError`).
+
+Active Storage uses the Disk service in dev and prod (`storage/`).
 
 ### Views and CSS
 
@@ -60,10 +66,24 @@ Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production ad
 
 After `bin/rails app:update` (Rails upgrades), review the diff before keeping it: it comments out `assume_ssl`/`force_ssl` and drops the Solid Cache/Queue lines from `production.rb`, replaces the foreman-based `bin/dev` with a plain `rails server`, and copies Active Storage upgrade migrations that are no-ops for this schema.
 
+## Conventions
+
+Checked by `bin/ci` and GitHub CI; run `bin/ci` before pushing.
+
+- **Ruby:** `bin/rubocop` — rubocop-rails-omakase plus the Lint, Rails, and Security departments, which catch bugs and Rails pitfalls rather than style (`.rubocop.yml`). `NewCops: enable`, so RuboCop upgrades can add offenses. Fix offenses rather than disabling cops; when disabling is right, scope it to the line and say why: `# rubocop:disable Cop/Name -- reason`.
+- **Templates:** `bin/slim-lint` — slim-lint's defaults plus double-quoted attributes and no instance variables in partials (`.slim-lint.yml`); Ruby inside templates is checked against `.rubocop.yml`. Write `.foo`, not `div.foo`, and comment with `/`, not `- #`.
+- **Security:** `bin/brakeman` must report no warnings. Fix the cause; record a genuine false positive with `bin/brakeman -I` (`config/brakeman.ignore`) and a note.
+- **Whitespace:** `.editorconfig` — UTF-8, LF, two-space indentation, final newline.
+
+Not checked by tools:
+
+- **Where code goes:** domain logic lives in models, plain Ruby objects included (`ContentSync` and `MarkdownDocument` in `app/models`; there is no `app/services`). Controllers look up records for the view; rake tasks only call model code, so the logic stays testable.
+- **Content paths:** build them from `Rails.configuration.x.content_root`, never `Rails.root.join("content")`, so tests read the fixture copy.
+- **Private methods** are indented one level under `private`, as in Rails itself.
+- **Tests:** Minitest with fixtures. `test/fixtures/files/content` mirrors `content/`, and the DB fixtures must match it (every fixture article has a Markdown file there). A bug fix comes with a test that fails without it.
+- **Commits:** short, lowercase, imperative subject (`fix div typos in slim views`), with a body saying why when it isn't obvious.
+
 ## Known state (update as it changes)
 
-- **Tests are untouched generator scaffolding and fail:** fixtures reference a nonexistent `content_path` column and repeat values that violate unique indexes; controller tests call route helpers (`articles_index_url`, `static_pages_about_url`, …) that the current `resources` routes don't define. Treat these failures as pre-existing.
-- `bin/rubocop` reports pre-existing offenses, mostly omakase's required spaces inside array brackets (`[ :index, :show ]`).
-- `bin/brakeman` exits non-zero on a pre-existing weak warning (model attribute used in a file name: `File.read` with `@article.filename` in `ArticlesController`), so the CI `scan_ruby` job fails until it's fixed or ignored.
-- `with_options if: :artwork?` in `Picture` has no effect: the block calls the outer `attachable` directly and named variants accept no `if:`, so every picture also defines and preprocesses the gallery variants. `preprocessed: :artwork?` is the supported way to make preprocessing conditional.
-- Unused/WIP: `AttachImageJob` (the rake task attaches inline instead), `PictureTag` (no associations), `ImagesController` (redirects `/image` to the first `Picture`).
+- `ContentSync` re-attaches every image on each run, so every sync uploads new blobs and regenerates every preprocessed variant.
+- Unused/WIP: `AttachImageJob` (superseded by `ContentSync`), `PictureTag` (no associations), `ImagesController` (redirects `/image` to the first `Picture`; untested, and it raises `ArgumentError` because `image.url` on the Disk service needs `ActiveStorage::Current.url_options`, which only Active Storage's own controllers set).
