@@ -2,8 +2,7 @@ module MarkdownHelper
   require "redcarpet"
   require "redcarpet/render_strip"
 
-  YAML_FRONT_MATTER_REGEXP = %r!\A(---\s*\n.*?\n?)^((---|\.\.\.)\s*$\n?)!m
-
+  # Renders a Markdown body (front matter already removed, see MarkdownDocument).
   def markdown(text)
     render_options = {
       filter_html: true,
@@ -21,27 +20,10 @@ module MarkdownHelper
       fenced_code_blocks: true,
       lax_spacing: true,
       strikethrough: true,
-      superscript: true,
+      superscript: true
     }
 
-    _, body = divide_yaml_and_body(text)
-    Redcarpet::Markdown.new(renderer, extensions).render(body).html_safe
-  end
-
-  def read_yaml_frontmatter(text)
-    params, _ = divide_yaml_and_body(text)
-    params
-  end
-
-  private
-  # refer to jekyll
-  # jekyll/lib/jekyll/convertible.rb read_yaml
-  def divide_yaml_and_body(text)
-    if text =~ YAML_FRONT_MATTER_REGEXP
-      body = Regexp.last_match.post_match
-      params = YAML.safe_load(Regexp.last_match(1))
-    end
-
-    return params, body
+    # filter_html strips any raw HTML from the Markdown, so the output is safe to mark as such.
+    Redcarpet::Markdown.new(renderer, extensions).render(text).html_safe # rubocop:disable Rails/OutputSafety
   end
 end

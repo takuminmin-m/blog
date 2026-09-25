@@ -23,5 +23,8 @@ module Blog
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Checkout of the separate content repository (articles, about page, images).
+    config.x.content_root = config.root.join("content")
   end
 end
