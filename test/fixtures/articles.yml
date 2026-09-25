@@ -1,9 +1,6 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Each article needs a matching file in test/fixtures/files/content/articles.
 
-one:
-  title: MyString
-  content_path: MyString
-
-two:
-  title: MyString
-  content_path: MyString
+hello_world:
+  filename: hello-world
+  title: Hello, world

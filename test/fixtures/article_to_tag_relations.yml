@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  article: one
-  article_tag: one
+hello_world_ruby:
+  article: hello_world
+  article_tag: ruby
 
-two:
-  article: two
-  article_tag: two
+hello_world_rails:
+  article: hello_world
+  article_tag: rails
