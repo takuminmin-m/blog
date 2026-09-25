@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.1"
+gem "rails", "~> 8.1.4"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use sqlite3 as the database for Active Record
@@ -38,7 +38,8 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
+gem "ruby-vips", "~> 2.3", require: false
 
 # Convert markdown to HTML
 gem "redcarpet"
@@ -71,8 +72,8 @@ group :development do
   # LSP support
   gem "solargraph"
 
-  # Convert HTML to slim
-  gem "html2slim-ruby3", require: false
+  # Convert HTML to slim (unreleased upstream: the RubyGems releases depend on hpricot, which no longer compiles)
+  gem "html2slim", github: "slim-template/html2slim", require: false
 end
 
 group :test do
