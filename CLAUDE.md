@@ -4,22 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Blog built on Rails 8.0 / Ruby 3.4.1: SQLite, Hotwire via importmap (no Node), Slim views, Propshaft with Tailwind v4 + Dart Sass. Article content is **not in this repo** — it lives in a gitignored `content/` directory managed in a separate repository, and the database only indexes it.
+Blog built on Rails 8.1 / Ruby 4.0: SQLite, Hotwire via importmap (no Node), Slim views, Propshaft with Tailwind v4 + Dart Sass. Article content is **not in this repo** — it lives in a gitignored `content/` directory managed in a separate repository, and the database only indexes it.
 
 ## Commands
 
 ```bash
-bin/setup                 # bundle install, db:prepare, clear logs/tmp, then exec bin/dev (--skip-server to stop there)
+bin/setup                 # bundle install, db:prepare, clear logs/tmp, then exec bin/dev (--skip-server to stop there, --reset to also db:reset)
 bin/dev                   # foreman (Procfile.dev): rails server + tailwindcss:watch + dartsass:watch
 bin/rails contents:sync   # import content/ into the DB (also: contents:sync_articles, contents:sync_gallery)
 bin/rails test            # whole suite; one file/test: bin/rails test test/models/article_test.rb[:LINE]
 bin/rubocop               # rubocop-rails-omakase (-a to autocorrect)
+bin/ci                    # local CI: runs the steps in config/ci.rb (setup, rubocop, audits, brakeman, tests)
 ```
 
 - `bin/dev` doesn't export `PORT`, so foreman's default applies and the app is at **http://localhost:5000** (plain `bin/rails server` uses 3000).
 - Compiled CSS goes to the gitignored `app/assets/builds/`; without the watchers running, use `bin/rails tailwindcss:build dartsass:build`.
-- Image variants require **libvips** (Rails 8's default variant processor; the Dockerfile installs it). macOS: `brew install vips`.
-- CI (`.github/workflows/ci.yml`) runs `bin/brakeman --no-pager`, `bin/importmap audit`, `bin/rubocop -f github`, and `bin/rails db:test:prepare test test:system`.
+- Image variants require **libvips** (Rails' default variant processor; the Dockerfile installs it). macOS: `brew install vips`. image_processing 2.x no longer pulls in `ruby-vips`, so the Gemfile lists it explicitly with `require: false` — that keeps Rails bootable on machines without libvips.
+- CI (`.github/workflows/ci.yml`) runs `bin/brakeman --no-pager`, `bin/importmap audit`, `bin/rubocop -f github`, and `bin/rails db:test:prepare test`, with system tests in a separate job.
 
 ## Architecture
 
@@ -47,7 +48,7 @@ content/
 
 ### Views and CSS
 
-- Views are Slim (`.html.slim`), not ERB; `html2slim-ruby3` is in the dev group for conversions.
+- Views are Slim (`.html.slim`), not ERB; the dev group has `html2slim`/`erb2slim` for conversions (from the upstream GitHub repo — the RubyGems releases depend on hpricot, which no longer compiles).
 - The layout's `stylesheet_link_tag :app` links every built stylesheet under `app/assets`:
   - `app/assets/tailwind/application.css` → `builds/tailwind.css` (Tailwind v4, configured in CSS; no JS config)
   - `app/assets/stylesheets/application.scss` → `builds/application.css` (Dart Sass)
@@ -55,11 +56,14 @@ content/
 
 ### Infrastructure
 
-Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production adds separate SQLite databases for Solid Cache/Queue/Cable. `config/deploy.yml` (Kamal) is still the generator template with placeholder host/registry.
+Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production adds separate SQLite databases for Solid Cache/Queue/Cable. `config/deploy.yml` (Kamal) is still the generator template with placeholder host/registry, and it enables Kamal's SSL proxy, which requires `config.assume_ssl`/`config.force_ssl` in `production.rb`.
+
+After `bin/rails app:update` (Rails upgrades), review the diff before keeping it: it comments out `assume_ssl`/`force_ssl` and drops the Solid Cache/Queue lines from `production.rb`, replaces the foreman-based `bin/dev` with a plain `rails server`, and copies Active Storage upgrade migrations that are no-ops for this schema.
 
 ## Known state (update as it changes)
 
 - **Tests are untouched generator scaffolding and fail:** fixtures reference a nonexistent `content_path` column and repeat values that violate unique indexes; controller tests call route helpers (`articles_index_url`, `static_pages_about_url`, …) that the current `resources` routes don't define. Treat these failures as pre-existing.
 - `bin/rubocop` reports pre-existing offenses, mostly omakase's required spaces inside array brackets (`[ :index, :show ]`).
+- `bin/brakeman` exits non-zero on a pre-existing weak warning (model attribute used in a file name: `File.read` with `@article.filename` in `ArticlesController`), so the CI `scan_ruby` job fails until it's fixed or ignored.
 - `with_options if: :artwork?` in `Picture` has no effect: the block calls the outer `attachable` directly and named variants accept no `if:`, so every picture also defines and preprocesses the gallery variants. `preprocessed: :artwork?` is the supported way to make preprocessing conditional.
 - Unused/WIP: `AttachImageJob` (the rake task attaches inline instead), `PictureTag` (no associations), `ImagesController` (redirects `/image` to the first `Picture`).
