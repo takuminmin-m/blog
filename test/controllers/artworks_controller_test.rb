@@ -14,33 +14,29 @@ class ArtworksControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "each thumbnail's lightbox shows the larger variant and the photo's EXIF" do
+  test "the lightbox has a slide per artwork, in gallery order, with the larger variant and the photo's EXIF" do
     ContentSync.new.sync
     sunset = Picture.find_by!(filename: "sunset.jpg")
 
     get artworks_url
 
-    assert_select "dialog[aria-label=?]", "sunset" do
-      assert_select "img[src=?]", polymorphic_path(sunset.image.variant(:gallery))
-      assert_select "details summary", "Info"
-      assert_select "dl" do |dl|
-        details = dl.first.css("dt").map(&:text).zip(dl.first.css("dd").map(&:text)).to_h
+    thumbnails = css_select("a[data-lightbox-index-param]").map { |link| [ link["data-lightbox-index-param"], link.at("img")["alt"] ] }
+    assert_equal [ [ "0", "sunset" ], [ "1", "artwork" ] ], thumbnails
 
-        assert_equal({ "Taken" => "2026-09-01 18:30", "Camera" => "Canon EOS R6", "Lens" => "RF50mm F1.8 STM", "Focal length" => "50 mm",
-          "Aperture" => "f/2.8", "Shutter speed" => "1/250 s", "ISO" => "400" }, details)
-      end
-    end
+    sunset_slide, artwork_slide = css_select("dialog figure")
+    assert_equal polymorphic_path(sunset.image.variant(:gallery)), sunset_slide.at("img")["src"]
+    assert_equal({ "Taken" => "2026-09-01 18:30", "Camera" => "Canon EOS R6", "Lens" => "RF50mm F1.8 STM", "Focal length" => "50 mm",
+      "Aperture" => "f/2.8", "Shutter speed" => "1/250 s", "ISO" => "400" },
+      sunset_slide.css("figcaption dt").map(&:text).zip(sunset_slide.css("figcaption dd").map(&:text)).to_h)
+
+    assert_equal "artwork", artwork_slide.at("img")["alt"]
+    assert_nil artwork_slide.at("figcaption"), "a photo without EXIF has no caption"
   end
 
-  test "a lightbox has no Info toggle for a photo without EXIF" do
-    ContentSync.new.sync
-
+  test "an empty gallery has no lightbox" do
     get artworks_url
 
-    assert_select "dialog[aria-label=?]", "artwork" do
-      assert_select "img"
-      assert_select "details", count: 0
-    end
+    assert_select "dialog", count: 0
   end
 
   test "index leaves out article images" do
