@@ -13,4 +13,5 @@ Rails.application.routes.draw do
 
   resources :articles, only: [ :index, :show ], param: :filename
   resources :article_tags, only: [ :index, :show ], param: :name
+  resources :artworks, only: :index, path: "gallery"
 end

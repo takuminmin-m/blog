@@ -1,0 +1,5 @@
+h1 Gallery
+div
+  - @artworks.each do |artwork|
+    = link_to url_for(artwork.image.variant(:gallery)) do
+      = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: File.basename(artwork.filename, ".*"), loading: "lazy"

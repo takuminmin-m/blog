@@ -6,6 +6,8 @@ class Picture < ApplicationRecord
   validates :filename, presence: true, uniqueness: true
   validates :artwork, inclusion: [ true, false ]
 
+  scope :artworks, -> { where(artwork: true) }
+
   has_one_attached :image do |attachable|
     options = {
       saver: { strip: true },
