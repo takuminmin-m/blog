@@ -13,3 +13,9 @@
     content: none;
   }
 }
+
+// The page behind a modal <dialog>, such as the gallery's lightbox over the whole viewport,
+// shouldn't scroll along with the wheel.
+html:has(dialog:modal) {
+  overflow: hidden;
+}
