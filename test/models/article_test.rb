@@ -9,6 +9,14 @@ class ArticleTest < ActiveSupport::TestCase
     end
   end
 
+  test "published_on is required, reported under the front matter's name" do
+    article = articles(:hello_world)
+    article.published_on = nil
+
+    assert_not article.valid?
+    assert_includes article.errors.full_messages, "Date can't be blank"
+  end
+
   test "body is the article's Markdown file without its front matter" do
     assert_equal "## First post\n\nWritten in **Markdown**.\n", articles(:hello_world).body
   end

@@ -1,8 +1,9 @@
 # Mirrors the content repository checkout into the database: Article rows keyed by filename
-# with title and tags from front matter, and a Picture for every image. Rows whose files are
-# gone are deleted, and images whose bytes haven't changed are left alone.
+# with title, date, and tags from front matter, and a Picture for every image. Rows whose
+# files are gone are deleted, and images whose bytes haven't changed are left alone.
 class ContentSync
   class MissingCheckout < StandardError; end
+  class InvalidArticle < StandardError; end
 
   IMAGES = "*.{jpg,JPG,jpeg,JPEG,png,PNG}"
 
@@ -26,8 +27,11 @@ class ContentSync
       documents.each do |filename, document|
         article = Article.find_or_initialize_by(filename: filename)
         article.title = document.front_matter["title"]
+        article.published_on = document.front_matter["date"]
         article.article_tags = Array(document.front_matter["tags"]).map { |name| ArticleTag.find_or_create_by!(name: name) }
         article.save!
+      rescue ActiveRecord::RecordInvalid => error
+        raise InvalidArticle, "articles/#{filename}.md: #{error.record.errors.full_messages.to_sentence}"
       end
 
       ArticleTag.where.missing(:article_to_tag_relations).destroy_all

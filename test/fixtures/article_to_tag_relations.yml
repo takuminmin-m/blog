@@ -7,3 +7,7 @@ hello_world_ruby:
 hello_world_rails:
   article: hello_world
   article_tag: rails
+
+second_post_rails:
+  article: second_post
+  article_tag: rails

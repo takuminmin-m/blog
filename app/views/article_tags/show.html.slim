@@ -3,6 +3,4 @@ h1
 h1
   = @article_tag.name
 div
-  - @articles.each do |article|
-    p
-      = link_to article.title, article_path(article.filename)
+  = render @articles

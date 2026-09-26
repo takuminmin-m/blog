@@ -15,6 +15,12 @@ class MarkdownDocumentTest < ActiveSupport::TestCase
     assert_equal "Body\n", document.body
   end
 
+  test "front matter dates load as dates" do
+    document = MarkdownDocument.new("---\ndate: 2026-09-26\n---\nBody\n")
+
+    assert_equal Date.new(2026, 9, 26), document.front_matter["date"]
+  end
+
   test "text without front matter is all body" do
     document = MarkdownDocument.new("Just text\n")
 

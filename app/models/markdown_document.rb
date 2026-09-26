@@ -11,7 +11,7 @@ class MarkdownDocument
 
   def initialize(text)
     if (match = FRONT_MATTER.match(text))
-      @front_matter = YAML.safe_load(match[1]) || {}
+      @front_matter = YAML.safe_load(match[1], permitted_classes: [ Date, Time ]) || {}
       @body = match.post_match
     else
       @front_matter = {}
