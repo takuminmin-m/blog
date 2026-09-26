@@ -4,6 +4,6 @@ class ArticlesController < ApplicationController
   end
 
   def show
-    @article = Article.find_by(filename: params[:filename])
+    @article = Article.find_by!(filename: params.expect(:filename))
   end
 end
