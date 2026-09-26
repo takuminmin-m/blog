@@ -89,4 +89,4 @@ Not checked by tools:
 
 ## Known state (update as it changes)
 
-- Unused/WIP: `AttachImageJob` (superseded by `ContentSync`), `PictureTag` (no associations), `ImagesController` (redirects `/image` to the first `Picture`; untested, and it raises `ArgumentError` because `image.url` on the Disk service needs `ActiveStorage::Current.url_options`, which only Active Storage's own controllers set).
+- Unused: `PictureTag` (a model and table with no associations yet).
