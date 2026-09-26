@@ -58,6 +58,8 @@ content/
 
 Active Storage uses the Disk service in dev and prod (`storage/`).
 
+Only variants can be fetched; originals can't be at all. An original has no watermark and keeps all its EXIF (GPS position included), and Active Storage's blob routes would serve it to anyone with the signed blob ID from any of its variant URLs. So `config.active_storage.draw_routes` is off, and `config/routes.rb` draws only what variants need: the representation routes (redirect and proxy), the Disk service's GET route, and the URL helpers `url_for(variant)` goes through, all copied from activestorage's `config/routes.rb`, so check them against it after a Rails upgrade. That leaves out direct uploads, which would let anyone store files, and `url_for` of an attachment or blob raises.
+
 ### Views and CSS
 
 - Views are Slim (`.html.slim`), not ERB; the dev group has `html2slim`/`erb2slim` for conversions (from the upstream GitHub repo — the RubyGems releases depend on hpricot, which no longer compiles).
@@ -76,7 +78,7 @@ Active Storage uses the Disk service in dev and prod (`storage/`).
 
 Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production adds separate SQLite databases for Solid Cache/Queue/Cable. `config/deploy.yml` (Kamal) is still the generator template with placeholder host/registry, and it enables Kamal's SSL proxy, which requires `config.assume_ssl`/`config.force_ssl` in `production.rb`.
 
-After `bin/rails app:update` (Rails upgrades), review the diff before keeping it: it comments out `assume_ssl`/`force_ssl` and drops the Solid Cache/Queue lines from `production.rb`, replaces the foreman-based `bin/dev` with a plain `rails server`, and copies Active Storage upgrade migrations that are no-ops for this schema.
+After `bin/rails app:update` (Rails upgrades), review the diff before keeping it: it comments out `assume_ssl`/`force_ssl` and drops the Solid Cache/Queue lines from `production.rb`, replaces the foreman-based `bin/dev` with a plain `rails server`, copies Active Storage upgrade migrations that are no-ops for this schema, and offers a fresh `config/application.rb` without this app's settings (without `draw_routes = false`, routes fail to load with "Invalid route name, already in use").
 
 ## Conventions
 
