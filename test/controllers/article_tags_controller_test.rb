@@ -13,4 +13,9 @@ class ArticleTagsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a[href=?]", article_path("hello-world"), text: "Hello, world"
   end
+
+  test "show responds 404 to an unknown tag" do
+    get article_tag_url("no-such-tag")
+    assert_response :not_found
+  end
 end

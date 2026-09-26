@@ -15,4 +15,9 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", "First post"
     assert_select "strong", "Markdown"
   end
+
+  test "show responds 404 to an unknown article" do
+    get article_url("no-such-post")
+    assert_response :not_found
+  end
 end
