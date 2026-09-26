@@ -1,11 +1,11 @@
 # Blog
 
-A personal blog on Rails 8.1 and Ruby 4.0. Articles, the about page, and images live in a separate content repository: this app indexes them into SQLite, renders the Markdown, and serves the images with a watermark.
+A personal blog on Rails 8.1 and Ruby 4.0. Articles, the about page, and images live in a separate content repository: this app indexes them into SQLite, renders the Markdown, and serves the images only as watermarked copies stripped of their metadata. The originals can't be downloaded.
 
 ## Requirements
 
 - Ruby 4.0.7 (see `.ruby-version`)
-- [libvips](https://www.libvips.org/) for image variants, which one test also needs. On macOS: `brew install vips`
+- [libvips](https://www.libvips.org/) for image variants, which some tests also need. On macOS: `brew install vips`
 
 ## Setup
 

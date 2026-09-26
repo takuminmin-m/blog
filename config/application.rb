@@ -29,5 +29,8 @@ module Blog
 
     # Shown in the header, page titles, and link previews.
     config.x.site_name = "Blog"
+
+    # config/routes.rb draws only the Active Storage routes that serve variants.
+    config.active_storage.draw_routes = false
   end
 end
