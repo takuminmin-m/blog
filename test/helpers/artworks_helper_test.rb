@@ -1,6 +1,10 @@
 require "test_helper"
 
 class ArtworksHelperTest < ActionView::TestCase
+  test "an artwork is named after its filename" do
+    assert_equal "2026-06-20-hydrangea", artwork_title(Picture.new(filename: "2026-06-20-hydrangea.jpg"))
+  end
+
   test "EXIF details are labeled and formatted the way cameras show them" do
     picture = Picture.new(taken_at: Time.utc(2026, 9, 1, 18, 30, 15), camera: "Canon EOS R6", lens: "RF50mm F1.8 STM",
       focal_length: 50.0, f_number: 2.8, exposure_time: 0.004, iso: 400)

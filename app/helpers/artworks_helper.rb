@@ -1,4 +1,9 @@
 module ArtworksHelper
+  # An artwork's name, from its filename: "2026-06-20-hydrangea".
+  def artwork_title(picture)
+    File.basename(picture.filename, ".*")
+  end
+
   # A picture's EXIF details for its lightbox, as label => value, leaving out what the photo
   # doesn't record.
   def exif_details(picture)
