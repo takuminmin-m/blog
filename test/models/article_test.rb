@@ -18,6 +18,6 @@ class ArticleTest < ActiveSupport::TestCase
   end
 
   test "body is the article's Markdown file without its front matter" do
-    assert_equal "## First post\n\nWritten in **Markdown**.\n", articles(:hello_world).body
+    assert_equal "## First post\n\nWritten in **Markdown**.\n\n![A white photo](images/photo.png)\n", articles(:hello_world).body
   end
 end
