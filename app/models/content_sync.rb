@@ -1,6 +1,7 @@
 # Mirrors the content repository checkout into the database: Article rows keyed by filename
-# with title, date, and tags from front matter, and a Picture for every image. Rows whose
-# files are gone are deleted, and images whose bytes haven't changed are left alone.
+# with title, date, and tags from front matter, and a Picture for every image with its EXIF
+# details. Rows whose files are gone are deleted, and images whose bytes haven't changed
+# aren't attached again.
 class ContentSync
   class MissingCheckout < StandardError; end
   class InvalidArticle < StandardError; end
@@ -58,7 +59,14 @@ class ContentSync
 
       paths.each do |path|
         picture = Picture.find_or_initialize_by(filename: path.basename.to_s)
-        next if picture.artwork == artwork && same_image?(picture, path)
+        # Read on every sync, not only when attaching: it's cheap, and it brings pictures that
+        # were synced before a detail was read up to date.
+        picture.assign_attributes(Exif.read(path).attributes)
+
+        if picture.artwork == artwork && same_image?(picture, path)
+          picture.save! if picture.changed?
+          next
+        end
 
         picture.artwork = artwork
         path.open do |io|

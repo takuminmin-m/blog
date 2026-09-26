@@ -70,6 +70,28 @@ class ContentSyncTest < ActiveSupport::TestCase
     assert picture.image.attached?
   end
 
+  test "pictures get the details from their EXIF" do
+    ContentSync.new.sync_gallery
+
+    sunset = Picture.find_by!(filename: "sunset.jpg")
+    assert_equal Time.utc(2026, 9, 1, 18, 30, 15), sunset.taken_at
+    assert_equal [ "Canon EOS R6", "RF50mm F1.8 STM", 50.0, 2.8, 0.004, 400 ],
+      sunset.values_at(:camera, :lens, :focal_length, :f_number, :exposure_time, :iso)
+    assert_nil Picture.find_by!(filename: "artwork.png").camera
+  end
+
+  test "EXIF details are read again without attaching unchanged images again" do
+    ContentSync.new.sync
+    Picture.find_by!(filename: "sunset.jpg").update!(camera: nil, taken_at: nil)
+
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      ContentSync.new.sync
+    end
+    sunset = Picture.find_by!(filename: "sunset.jpg")
+    assert_equal "Canon EOS R6", sunset.camera
+    assert_equal Time.utc(2026, 9, 1, 18, 30, 15), sunset.taken_at
+  end
+
   test "unchanged images are left alone" do
     ContentSync.new.sync
     blob = Picture.find_by!(filename: "photo.png").image.blob

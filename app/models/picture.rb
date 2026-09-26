@@ -3,6 +3,9 @@ class Picture < ApplicationRecord
   # ActiveStorage::TransformJob, and Active Job can't serialize a Pathname.
   OVERLAY = Rails.configuration.x.content_root.join("overlay.png").to_s
 
+  # The camera's clock time from EXIF (see Exif#taken_at), which Time.zone mustn't shift.
+  self.skip_time_zone_conversion_for_attributes = [ :taken_at ]
+
   validates :filename, presence: true, uniqueness: true
   validates :artwork, inclusion: [ true, false ]
 

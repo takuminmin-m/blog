@@ -125,6 +125,7 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.2)
       tzinfo
+    exifr (1.5.1)
     ffi (1.17.4-aarch64-linux-gnu)
     ffi (1.17.4-aarch64-linux-musl)
     ffi (1.17.4-arm-linux-gnu)
@@ -517,6 +518,7 @@ DEPENDENCIES
   capybara
   dartsass-rails
   debug
+  exifr (~> 1.5)
   html2slim!
   image_processing (~> 2.0)
   importmap-rails

@@ -41,6 +41,9 @@ gem "thruster", require: false
 gem "image_processing", "~> 2.0"
 gem "ruby-vips", "~> 2.3", require: false
 
+# Read the gallery photos' EXIF, in pure Ruby [https://codeberg.org/rwv/exifr]
+gem "exifr", "~> 1.5"
+
 # Convert markdown to HTML
 gem "redcarpet"
 

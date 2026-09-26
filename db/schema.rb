@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_123202) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_133115) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -78,6 +78,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_123202) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "taken_at"
+    t.string "camera"
+    t.string "lens"
+    t.float "focal_length"
+    t.float "f_number"
+    t.float "exposure_time"
+    t.integer "iso"
     t.index ["filename"], name: "index_pictures_on_filename", unique: true
   end
 
