@@ -8,10 +8,10 @@ class ArticleTagsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", article_tag_path("rails"), text: "rails"
   end
 
-  test "show links to the tag's articles" do
-    get article_tag_url("ruby")
+  test "show lists the tag's articles newest first" do
+    get article_tag_url("rails")
     assert_response :success
-    assert_select "a[href=?]", article_path("hello-world"), text: "Hello, world"
+    assert_equal [ article_path("second-post"), article_path("hello-world") ], css_select("a[href^='/articles/']").pluck("href")
   end
 
   test "show responds 404 to an unknown tag" do

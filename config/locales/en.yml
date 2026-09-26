@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+  activerecord:
+    attributes:
+      article:
+        # Named after the front matter key it comes from, for ContentSync's errors.
+        published_on: "Date"

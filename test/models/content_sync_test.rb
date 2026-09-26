@@ -4,7 +4,8 @@ class ContentSyncTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   test "sync_articles creates and updates articles from their front matter" do
-    articles(:hello_world).update!(title: "Stale title", article_tags: [ article_tags(:ruby) ])
+    articles(:second_post).destroy
+    articles(:hello_world).update!(title: "Stale title", published_on: "2020-01-01", article_tags: [ article_tags(:ruby) ])
 
     assert_difference "Article.count", 1 do
       ContentSync.new.sync_articles
@@ -12,15 +13,31 @@ class ContentSyncTest < ActiveSupport::TestCase
 
     hello_world = articles(:hello_world).reload
     assert_equal "Hello, world", hello_world.title
+    assert_equal Date.new(2026, 9, 1), hello_world.published_on
     assert_equal %w[ rails ruby ], hello_world.article_tags.pluck(:name).sort
 
     second_post = Article.find_by!(filename: "second-post")
     assert_equal "Second post", second_post.title
+    assert_equal Date.new(2026, 9, 15), second_post.published_on
     assert_equal %w[ rails ], second_post.article_tags.pluck(:name)
   end
 
+  test "an invalid article stops the sync, names its file, and changes nothing" do
+    with_content_copy do |root|
+      second_post = root.join("articles/second-post.md")
+      second_post.write(second_post.read.sub(/^date: .*\n/, ""))
+      articles(:hello_world).update!(title: "Stale title")
+
+      error = assert_raises(ContentSync::InvalidArticle) { ContentSync.new(root).sync_articles }
+
+      assert_equal "articles/second-post.md: Date can't be blank", error.message
+      assert_equal "Stale title", articles(:hello_world).reload.title
+    end
+  end
+
   test "sync_articles deletes articles whose files are gone and tags no article uses" do
-    Article.create!(filename: "deleted-post", title: "Deleted post", article_tags: [ ArticleTag.create!(name: "drafts") ])
+    Article.create!(filename: "deleted-post", title: "Deleted post", published_on: Date.current,
+      article_tags: [ ArticleTag.create!(name: "drafts") ])
 
     ContentSync.new.sync_articles
 

@@ -4,3 +4,9 @@
 hello_world:
   filename: hello-world
   title: Hello, world
+  published_on: 2026-09-01
+
+second_post:
+  filename: second-post
+  title: Second post
+  published_on: 2026-09-15

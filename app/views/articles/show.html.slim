@@ -1,5 +1,7 @@
 h1 = @article.title
 p
+  = time_tag @article.published_on, format: :default
+p
   - @article.article_tags.each do |article_tag|
     span.tag = link_to article_tag.name, article_tag_path(article_tag.name)
 div

@@ -31,20 +31,21 @@ Articles, the about page, and all images come from `content/` — `Rails.configu
 
 ```
 content/
-  articles/<filename>.md            # YAML front matter: title, tags (list)
+  articles/<filename>.md            # YAML front matter: title, date (both required), tags (list)
   articles/images/*.{jpg,jpeg,png}  # → Picture, artwork: false
   gallery/*.{jpg,jpeg,png}          # → Picture, artwork: true
   static_pages/about.md             # rendered at /about
   overlay.png                       # watermark composited onto every Picture variant
 ```
 
-- **Sync (write path):** `ContentSync` (`app/models/content_sync.rb`; the `contents:*` rake tasks only call it) mirrors `content/` into the DB — `Article` keyed by `filename` (basename without `.md`) with `title` from front matter, tags via `ArticleToTagRelation` → `ArticleTag`, and every image attached to a `Picture` through Active Storage. Re-run it after adding, removing, or renaming files or changing a title/tags; it's cheap to repeat:
+- **Sync (write path):** `ContentSync` (`app/models/content_sync.rb`; the `contents:*` rake tasks only call it) mirrors `content/` into the DB — `Article` keyed by `filename` (basename without `.md`) with `title` and `published_on` (the `date` key) from front matter, tags via `ArticleToTagRelation` → `ArticleTag`, and every image attached to a `Picture` through Active Storage. Re-run it after adding, removing, or renaming files or changing front matter; it's cheap to repeat:
   - Rows whose files are gone are deleted (articles before they're upserted, so a renamed article keeps its title), along with tags no article uses.
+  - An invalid article (say, no `date`) raises `ContentSync::InvalidArticle` naming its file, and the whole article part rolls back. Error messages call `published_on` "Date" (`config/locales/en.yml`) to match the key.
   - An image whose file checksum matches its blob's (Base64 MD5) is skipped; re-attaching would upload a new blob and regenerate every preprocessed variant.
   - `Picture` is keyed by filename alone, so image filenames must be unique across `articles/images` and `gallery`.
   - It raises `ContentSync::MissingCheckout` when the root has no `articles/` directory, so a missing checkout (e.g. an unmounted volume) can't delete every row.
-- **Render (read path):** `ArticlesController#show` finds the `Article` by filename, and `Article#body` reads `content/articles/<filename>.md` from disk on every request. The DB holds only metadata, so body edits need no resync. `Article` validates that `filename` contains no path separators, since it becomes part of that path.
-- **Parsing vs. rendering:** `MarkdownDocument` splits the optional YAML front matter from the body (`YAML.safe_load`, so no dates or symbols in front matter) for both paths; views call `markdown(body)` from `MarkdownHelper` (Redcarpet with `filter_html: true` — raw HTML in Markdown is stripped, which is what makes marking the output `html_safe` safe).
+- **Render (read path):** `ArticlesController#show` finds the `Article` by filename, and `Article#body` reads `content/articles/<filename>.md` from disk on every request. The DB holds only metadata, so body edits need no resync. `Article` validates that `filename` contains no path separators, since it becomes part of that path. Lists use `Article.newest_first`.
+- **Parsing vs. rendering:** `MarkdownDocument` splits the optional YAML front matter from the body (`YAML.safe_load` permitting only `Date` and `Time`, so no symbols or other objects) for both paths; views call `markdown(body)` from `MarkdownHelper` (Redcarpet with `filter_html: true` — raw HTML in Markdown is stripped, which is what makes marking the output `html_safe` safe).
 - Routes use natural keys, not ids: `/articles/:filename`, `/article_tags/:name` (`param:` in `config/routes.rb`). Lookups use `find_by!` with `params.expect`, so unknown keys are 404s. An article deleted from `content/` but not yet synced still has its row, and its page is a 500 (`Errno::ENOENT`) until the next sync.
 
 ### Pictures

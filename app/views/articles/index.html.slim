@@ -3,6 +3,4 @@ h1
 p
   | Find me in app/views/articles/index.html.slim
 div
-  - @articles.each do |article|
-    p
-      = link_to article.title, article_path(article.filename)
+  = render @articles
