@@ -1,6 +1,4 @@
-h1
-  | ArticleTag#show
-h1
-  = @article_tag.name
-div
+- provide :title, "##{@article_tag.name}"
+h1.mb-8.text-2xl.font-bold = "##{@article_tag.name}"
+ul.space-y-3
   = render @articles

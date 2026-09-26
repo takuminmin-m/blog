@@ -1,6 +1,4 @@
-h1
-  | Articles#index
-p
-  | Find me in app/views/articles/index.html.slim
-div
+- provide :title, "Articles"
+h1.mb-8.text-2xl.font-bold Articles
+ul.space-y-3
   = render @articles

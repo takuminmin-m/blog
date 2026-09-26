@@ -1,5 +1,9 @@
-h1 Gallery
-div
+- provide :title, "Gallery"
+h1.mb-8.text-2xl.font-bold Gallery
+/ Columns rather than a cropped grid: artworks keep their proportions, and the watermark
+/ in their south-east corner stays visible.
+ul class="columns-2 gap-2 sm:columns-3"
   - @artworks.each do |artwork|
-    = link_to url_for(artwork.image.variant(:gallery)) do
-      = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: File.basename(artwork.filename, ".*"), loading: "lazy"
+    li.mb-2.break-inside-avoid
+      = link_to url_for(artwork.image.variant(:gallery)) do
+        = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: File.basename(artwork.filename, ".*"), loading: "lazy", class: "w-full rounded"

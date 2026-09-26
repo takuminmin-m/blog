@@ -1,6 +1,5 @@
 module MarkdownHelper
   require "redcarpet"
-  require "redcarpet/render_strip"
 
   # Articles reference their images as images/<filename>, relative to the Markdown file so
   # editors and GitHub preview them. On the site that becomes the Picture's watermarked

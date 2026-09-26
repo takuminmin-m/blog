@@ -1,6 +1,5 @@
-nav
-  = link_to "home", root_path
-  |
-  = link_to "about", about_path
-  |
-  = link_to "articles", articles_path
+nav.flex.gap-x-5.text-sm.text-gray-600
+  = nav_link_to "Articles", articles_path
+  = nav_link_to "Tags", article_tags_path
+  = nav_link_to "Gallery", artworks_path
+  = nav_link_to "About", about_path

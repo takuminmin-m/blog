@@ -1,13 +1,13 @@
 doctype html
-html
+html[lang="ja"]
   head
-    title
-      = content_for(:title) || "Blog"
+    title = page_title
     meta[name="viewport" content="width=device-width,initial-scale=1"]
     meta[name="apple-mobile-web-app-capable" content="yes"]
     meta[name="mobile-web-app-capable" content="yes"]
     = csrf_meta_tags
     = csp_meta_tag
+    = render "layouts/link_preview"
     = yield :head
     / Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!)
     /= tag.link rel: "manifest", href: pwa_manifest_path(format: :json)
@@ -17,15 +17,12 @@ html
     / Includes all stylesheet files in app/assets/stylesheets
     = stylesheet_link_tag :app, "data-turbo-track": "reload"
     = javascript_importmap_tags
-  body
-    p
-      = link_to "home", root_path
-    p
-      = link_to "about", about_path
-    p
-      = link_to "articles", articles_path
-    p
-      = link_to "article_tags", article_tags_path
-    p
-      = link_to "gallery", artworks_path
-    = yield
+  body.bg-white.text-gray-900.antialiased
+    .mx-auto.max-w-2xl.px-4
+      header.flex.flex-wrap.items-baseline.justify-between.gap-x-6.gap-y-2.py-8
+        = link_to site_name, root_path, class: "text-xl font-bold tracking-tight"
+        = render "layouts/navigation"
+      main.pb-16
+        = yield
+      footer.border-t.border-gray-200.py-8.text-sm.text-gray-500
+        | © #{Date.current.year} #{site_name}

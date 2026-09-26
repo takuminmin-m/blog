@@ -1,4 +1,5 @@
-div
+- provide :title, "Tags"
+h1.mb-8.text-2xl.font-bold Tags
+ul.flex.flex-wrap.gap-2
   - @article_tags.each do |article_tag|
-    p
-      = link_to article_tag.name, article_tag_path(article_tag.name)
+    li = link_to "##{article_tag.name}", article_tag_path(article_tag.name), class: "block rounded-full border border-gray-200 px-3 py-1 text-sm hover:border-gray-400"

@@ -1,5 +1,6 @@
 class StaticPagesController < ApplicationController
   def index
+    @articles = Article.newest_first.limit(10)
   end
 
   def about

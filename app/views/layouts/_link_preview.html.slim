@@ -1,0 +1,14 @@
+/ Open Graph and Twitter card tags from what the page provides: :title, :description,
+/ :og_type (default "website"), and :og_image (an absolute URL).
+meta[property="og:site_name" content=site_name]
+meta[property="og:title" content=(content_for(:title) || site_name)]
+meta[property="og:type" content=(content_for(:og_type) || "website")]
+meta[property="og:url" content="#{request.base_url}#{request.path}"]
+- if content_for?(:description)
+  meta[name="description" content=content_for(:description)]
+  meta[property="og:description" content=content_for(:description)]
+- if content_for?(:og_image)
+  meta[property="og:image" content=content_for(:og_image)]
+  meta[name="twitter:card" content="summary_large_image"]
+- else
+  meta[name="twitter:card" content="summary"]
