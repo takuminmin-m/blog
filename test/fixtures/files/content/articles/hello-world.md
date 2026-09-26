@@ -8,3 +8,5 @@ tags:
 ## First post
 
 Written in **Markdown**.
+
+![A white photo](images/photo.png)

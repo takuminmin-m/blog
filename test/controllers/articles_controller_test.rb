@@ -19,6 +19,21 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     assert_select "strong", "Markdown"
   end
 
+  test "show serves the article's images as watermarked variants" do
+    require "vips" # needs libvips installed
+    ContentSync.new.sync_articles
+
+    get article_url("hello-world")
+    src = css_select("img[alt='A white photo']").first["src"]
+    get src
+    follow_redirect!
+
+    assert_response :success
+    image = Vips::Image.new_from_buffer(response.body, "")
+    assert_equal [ 800, 600 ], [ image.width, image.height ], "resize_to_limit doesn't upscale"
+    assert_equal [ 255, 0, 0 ], image.getpoint(image.width - 1, image.height - 1).first(3), "overlay pixel"
+  end
+
   test "show responds 404 to an unknown article" do
     get article_url("no-such-post")
     assert_response :not_found
