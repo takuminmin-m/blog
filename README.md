@@ -1,24 +1,55 @@
-# README
+# Blog
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A personal blog on Rails 8.1 and Ruby 4.0. Articles, the about page, and images live in a separate content repository: this app indexes them into SQLite, renders the Markdown, and serves the images with a watermark.
 
-Things you may want to cover:
+## Requirements
 
-* Ruby version
+- Ruby 4.0.7 (see `.ruby-version`)
+- [libvips](https://www.libvips.org/) for image variants, which one test also needs. On macOS: `brew install vips`
 
-* System dependencies
+## Setup
 
-* Configuration
+```sh
+bin/setup --skip-server        # gems and databases
+git clone <content repository> content
+bin/rails contents:sync        # index the content into the database
+bin/dev                        # http://localhost:3000
+```
 
-* Database creation
+`content/` is gitignored; a symlink to an existing checkout works too.
 
-* Database initialization
+## Writing content
 
-* How to run the test suite
+```
+content/
+  articles/<name>.md       # served at /articles/<name>
+  articles/images/         # images embedded in articles
+  gallery/                 # images shown at /gallery
+  static_pages/about.md    # served at /about
+  overlay.png              # watermark added to every image
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+Every article starts with front matter:
 
-* Deployment instructions
+```markdown
+---
+title: Hello, world
+date: 2026-09-26
+tags:
+  - ruby
+---
+The body is Markdown. Embed an image from articles/images like this:
 
-* ...
+![A photo](images/photo.jpg)
+```
+
+Run `bin/rails contents:sync` after adding, removing, or renaming files or changing front matter. Edits to a body show up without it. Image filenames must be unique across `articles/images` and `gallery`, and a sync stops at an article without a title or date, naming the file.
+
+## Development
+
+- `bin/ci` runs what GitHub CI runs: RuboCop, slim-lint, the importmap audit, Brakeman, and the tests.
+- [CLAUDE.md](CLAUDE.md) describes the architecture and the coding conventions.
+
+## Deployment
+
+Not set up yet.
