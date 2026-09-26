@@ -1,11 +1,18 @@
 module MarkdownHelper
   require "redcarpet"
+  require "rouge/plugins/redcarpet"
 
   # Articles reference their images as images/<filename>, relative to the Markdown file so
   # editors and GitHub preview them. On the site that becomes the Picture's watermarked
   # :article variant; the original has no watermark, so it's never linked. Any other image
   # keeps its src.
+  #
+  # Code blocks are highlighted by Rouge as <pre class="highlight <language>">, styled by
+  # app/assets/stylesheets/_syntax.scss. Without a language they stay plain text unless the
+  # code names its own (a shebang, say).
   class Renderer < Redcarpet::Render::HTML
+    include Rouge::Plugins::Redcarpet
+
     def initialize(view, options)
       super(options)
       @view = view

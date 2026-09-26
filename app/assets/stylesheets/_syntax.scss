@@ -1,0 +1,121 @@
+// Rouge's GitHub light theme for highlighted code blocks. Scoped to .prose so it wins over the
+// typography plugin's dark <pre>. Generated; regenerate after upgrading Rouge with:
+//   bundle exec rougify style github.light --scope ".prose .highlight" > app/assets/stylesheets/_syntax.scss
+// (then put this header back).
+
+.prose .highlight table td { padding: 5px; }
+.prose .highlight table pre { margin: 0; }
+.prose .highlight, .prose .highlight .w {
+  color: #24292f;
+  background-color: #f6f8fa;
+}
+.prose .highlight .k, .prose .highlight .kd, .prose .highlight .kn, .prose .highlight .kp, .prose .highlight .kr, .prose .highlight .kt, .prose .highlight .kv {
+  color: #cf222e;
+}
+.prose .highlight .gr {
+  color: #f6f8fa;
+}
+.prose .highlight .gd {
+  color: #82071e;
+  background-color: #ffebe9;
+}
+.prose .highlight .nb {
+  color: #953800;
+}
+.prose .highlight .nc {
+  color: #953800;
+}
+.prose .highlight .no {
+  color: #953800;
+}
+.prose .highlight .nn {
+  color: #953800;
+}
+.prose .highlight .sr {
+  color: #116329;
+}
+.prose .highlight .na {
+  color: #116329;
+}
+.prose .highlight .nt {
+  color: #116329;
+}
+.prose .highlight .gi {
+  color: #116329;
+  background-color: #dafbe1;
+}
+.prose .highlight .ges {
+  font-weight: bold;
+  font-style: italic;
+}
+.prose .highlight .kc {
+  color: #0550ae;
+}
+.prose .highlight .l, .prose .highlight .ld, .prose .highlight .m, .prose .highlight .mb, .prose .highlight .mf, .prose .highlight .mh, .prose .highlight .mi, .prose .highlight .il, .prose .highlight .mo, .prose .highlight .mx {
+  color: #0550ae;
+}
+.prose .highlight .sb {
+  color: #0550ae;
+}
+.prose .highlight .bp {
+  color: #0550ae;
+}
+.prose .highlight .ne {
+  color: #0550ae;
+}
+.prose .highlight .nl {
+  color: #0550ae;
+}
+.prose .highlight .py {
+  color: #0550ae;
+}
+.prose .highlight .nv, .prose .highlight .vc, .prose .highlight .vg, .prose .highlight .vi, .prose .highlight .vm {
+  color: #0550ae;
+}
+.prose .highlight .o, .prose .highlight .ow {
+  color: #0550ae;
+}
+.prose .highlight .gh {
+  color: #0550ae;
+  font-weight: bold;
+}
+.prose .highlight .gu {
+  color: #0550ae;
+  font-weight: bold;
+}
+.prose .highlight .s, .prose .highlight .sa, .prose .highlight .sc, .prose .highlight .dl, .prose .highlight .sd, .prose .highlight .s2, .prose .highlight .se, .prose .highlight .sh, .prose .highlight .sx, .prose .highlight .s1, .prose .highlight .ss {
+  color: #0a3069;
+}
+.prose .highlight .nd {
+  color: #8250df;
+}
+.prose .highlight .nf, .prose .highlight .fm {
+  color: #8250df;
+}
+.prose .highlight .err {
+  color: #f6f8fa;
+  background-color: #82071e;
+}
+.prose .highlight .c, .prose .highlight .ch, .prose .highlight .cd, .prose .highlight .cm, .prose .highlight .cp, .prose .highlight .cpf, .prose .highlight .c1, .prose .highlight .cs {
+  color: #6e7781;
+}
+.prose .highlight .gl {
+  color: #6e7781;
+}
+.prose .highlight .gt {
+  color: #6e7781;
+}
+.prose .highlight .ni {
+  color: #24292f;
+}
+.prose .highlight .si {
+  color: #24292f;
+}
+.prose .highlight .ge {
+  color: #24292f;
+  font-style: italic;
+}
+.prose .highlight .gs {
+  color: #24292f;
+  font-weight: bold;
+}

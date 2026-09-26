@@ -4,4 +4,10 @@ date: 2026-09-15
 tags:
   - rails
 ---
-Another post.
+Another post, with code.
+
+```ruby
+def greet(name)
+  "Hello, #{name}"
+end
+```
