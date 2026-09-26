@@ -43,6 +43,8 @@ The body is Markdown. Embed an image from articles/images like this:
 ![A photo](images/photo.jpg)
 ```
 
+Fenced code blocks that name their language (```` ```ruby ````) are syntax-highlighted.
+
 Run `bin/rails contents:sync` after adding, removing, or renaming files or changing front matter. Edits to a body show up without it. Image filenames must be unique across `articles/images` and `gallery`, and a sync stops at an article without a title or date, naming the file.
 
 ## Development

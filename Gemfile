@@ -44,6 +44,9 @@ gem "ruby-vips", "~> 2.3", require: false
 # Convert markdown to HTML
 gem "redcarpet"
 
+# Highlight the Markdown's code blocks [https://github.com/rouge-ruby/rouge]
+gem "rouge"
+
 # Use tailwindcss
 gem "tailwindcss-ruby"
 gem "tailwindcss-rails"

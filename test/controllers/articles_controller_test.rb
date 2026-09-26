@@ -21,6 +21,11 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".prose strong", "Markdown"
   end
 
+  test "show highlights the article's code blocks" do
+    get article_url("second-post")
+    assert_select ".prose pre.highlight.ruby span.k", "def"
+  end
+
   test "show marks the articles section as current in the navigation" do
     get article_url("hello-world")
     assert_select "nav a[aria-current=page]", "Articles"
