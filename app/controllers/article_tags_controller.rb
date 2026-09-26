@@ -1,6 +1,6 @@
 class ArticleTagsController < ApplicationController
   def index
-    @article_tags = ArticleTag.all
+    @article_tags = ArticleTag.order(:name)
   end
 
   def show

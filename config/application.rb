@@ -26,5 +26,8 @@ module Blog
 
     # Checkout of the separate content repository (articles, about page, images).
     config.x.content_root = config.root.join("content")
+
+    # Shown in the header, page titles, and link previews.
+    config.x.site_name = "Blog"
   end
 end

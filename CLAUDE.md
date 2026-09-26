@@ -65,6 +65,11 @@ Active Storage uses the Disk service in dev and prod (`storage/`).
   - `app/assets/tailwind/application.css` → `builds/tailwind.css` (Tailwind v4, configured in CSS; no JS config)
   - `app/assets/stylesheets/application.scss` → `builds/application.css` (Dart Sass)
   - `app/assets/stylesheets/application.css` is **shadowed**: it shares the logical path `application.css` with the Sass output, and Propshaft resolves `app/assets/builds/` first, so edits to it never ship. Put custom styles in `application.scss`.
+- The design is one text-first column (`max-w-2xl`): a header with `site_name` (`config.x.site_name`, still the placeholder "Blog") and `layouts/_navigation`, whose `nav_link_to` marks the current section with `aria-current`, then the page and a footer. UI text is English, while `<html lang="ja">` is for the article text.
+- Markdown bodies get Tailwind's typography plugin (`prose`), loaded with `@plugin "@tailwindcss/typography"`; the standalone Tailwind CLI bundles it, so there's no Node dependency.
+- Slim's `.class` shortcuts can't hold `:` or `[ ]`, so Tailwind variant classes (`sm:…`, `aria-[…]:…`) go in a `class="…"` attribute.
+- **Page titles and link previews:** a view provides `:title` (the `<title>` becomes "Title | Blog"), `:description`, `:og_type` (default "website"), and `:og_image` (an absolute URL), and `layouts/_link_preview` turns them into description, Open Graph, and Twitter card tags. An article describes itself with `Article#summary` (`MarkdownDocument#plain_text`, truncated) and previews `Article#cover_picture`, the first `images/<file>` it embeds.
+- The gallery uses CSS columns instead of a cropped square grid, so artworks keep their proportions and their watermarked corner.
 
 ### Infrastructure
 

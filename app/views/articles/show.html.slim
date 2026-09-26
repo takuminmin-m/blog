@@ -1,8 +1,16 @@
-h1 = @article.title
-p
-  = time_tag @article.published_on, format: :default
-p
-  - @article.article_tags.each do |article_tag|
-    span.tag = link_to article_tag.name, article_tag_path(article_tag.name)
-div
-  = markdown(@article.body)
+ruby:
+  provide :title, @article.title
+  provide :description, @article.summary
+  provide :og_type, "article"
+  cover = @article.cover_picture
+  provide :og_image, polymorphic_url(cover.image.variant(:article)) if cover
+
+article
+  header.mb-8
+    h1.text-3xl.font-bold.tracking-tight = @article.title
+    .mt-2.flex.flex-wrap.gap-x-3.text-sm.text-gray-500
+      = time_tag @article.published_on, format: :default, class: "tabular-nums"
+      - @article.article_tags.each do |article_tag|
+        = link_to "##{article_tag.name}", article_tag_path(article_tag.name), class: "hover:text-gray-900"
+  .prose.prose-gray.max-w-none
+    = markdown(@article.body)

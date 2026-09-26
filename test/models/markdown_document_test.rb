@@ -21,6 +21,22 @@ class MarkdownDocumentTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 9, 26), document.front_matter["date"]
   end
 
+  test "plain_text keeps the prose on one line, without URLs, images, or code" do
+    document = MarkdownDocument.new(<<~MARKDOWN)
+      ## Heading
+
+      Some **bold** text with a [link](https://example.com).
+
+      ![A photo](images/photo.png)
+
+      ```ruby
+      puts "code"
+      ```
+    MARKDOWN
+
+    assert_equal "Heading Some bold text with a link.", document.plain_text
+  end
+
   test "text without front matter is all body" do
     document = MarkdownDocument.new("Just text\n")
 
