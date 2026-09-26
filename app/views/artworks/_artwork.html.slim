@@ -1,0 +1,26 @@
+/ A thumbnail that opens the larger variant in a lightbox (lightbox_controller.js), or on its
+/ own without JavaScript. The photo's EXIF details are behind the lightbox's Info toggle.
+ruby:
+  title = File.basename(artwork.filename, ".*")
+  large = url_for(artwork.image.variant(:gallery))
+  exif = exif_details(artwork)
+/ Closed before Turbo caches the page, since a snapshot of an open modal would come back as a
+/ non-modal dialog stuck open.
+li.mb-2.break-inside-avoid data-controller="lightbox" data-action="turbo:before-cache@document->lightbox#close"
+  = link_to large, aria: { haspopup: "dialog" }, data: { action: "lightbox#open" } do
+    = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: title, loading: "lazy", class: "w-full rounded"
+  dialog class="size-full max-h-none max-w-none bg-black text-sm text-gray-300 transition-opacity starting:open:opacity-0" aria-label=title data-lightbox-target="dialog"
+    .flex.size-full.flex-col
+      .flex.min-h-0.flex-1.items-center.justify-center.p-4 data-action="click->lightbox#closeOnBackdrop"
+        = image_tag large, alt: title, loading: "lazy", class: "max-h-full max-w-full"
+      .flex.items-start.gap-4.px-2.pb-2
+        - if exif.any?
+          details
+            summary class="cursor-pointer select-none rounded px-2 py-1 hover:bg-white/10 hover:text-white" Info
+            dl.mt-1.mb-2.flex.flex-wrap.gap-x-6.gap-y-2.px-2
+              - exif.each do |label, value|
+                div
+                  dt.text-xs.text-gray-400 = label
+                  dd.text-gray-100 = value
+        form.ml-auto method="dialog"
+          button class="rounded px-2 py-1 hover:bg-white/10 hover:text-white" Close

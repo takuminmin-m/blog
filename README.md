@@ -45,11 +45,13 @@ The body is Markdown. Embed an image from articles/images like this:
 
 Fenced code blocks that name their language (```` ```ruby ````) are syntax-highlighted.
 
+Clicking a photo in the gallery enlarges it in place, and its Info toggle lists what the photo's EXIF records: when it was taken, the camera and lens, focal length, aperture, shutter speed, and ISO. EXIF is read from JPEGs only, and nothing else in it, such as the location, is shown.
+
 Run `bin/rails contents:sync` after adding, removing, or renaming files or changing front matter. Edits to a body show up without it. Image filenames must be unique across `articles/images` and `gallery`, and a sync stops at an article without a title or date, naming the file.
 
 ## Development
 
-- `bin/ci` runs what GitHub CI runs: RuboCop, slim-lint, the importmap audit, Brakeman, and the tests.
+- `bin/ci` runs what GitHub CI runs: RuboCop, slim-lint, the importmap audit, Brakeman, and the tests, including the system tests in headless Chrome.
 - [CLAUDE.md](CLAUDE.md) describes the architecture and the coding conventions.
 
 ## Deployment
