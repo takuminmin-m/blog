@@ -41,6 +41,7 @@ state=$(
 )
 state_file=$root/.synced
 if [ "$state" != "$(cat "$state_file" 2> /dev/null)" ]; then
-  docker compose exec --no-TTY app bin/rails contents:sync
+  # Warnings only: at info, every attached photo logs lines that the SD card would keep.
+  docker compose exec --no-TTY --env RAILS_LOG_LEVEL=warn app bin/rails contents:sync
   echo "$state" > "$state_file"
 fi
