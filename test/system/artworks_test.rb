@@ -65,6 +65,36 @@ class ArtworksTest < ApplicationSystemTestCase
     assert_selector "a:focus img[alt=artwork]" # focused on the dialog's close event, a task later
   end
 
+  test "past either end of a page, the lightbox carries on into the neighboring page" do
+    per_page = ArtworksController::PER_PAGE
+    add_artworks per_page - 1
+    visit artworks_url
+    click_on "extra-00" # the first page's last
+
+    within("dialog[open]") { assert_text "#{per_page} / #{per_page + 1}" }
+    next_button.click
+    assert_current_path artworks_path(page: 2)
+    within("dialog[open]") { assert_text "#{per_page + 1} / #{per_page + 1}" }
+    assert_equal "artwork", shown_photo
+
+    find("dialog[open] button[aria-label='Previous photo']").click
+    assert_current_path artworks_path
+    within("dialog[open]") { assert_text "#{per_page} / #{per_page + 1}" }
+    assert_equal "extra-00", shown_photo
+  end
+
+  test "swiping past a page's last photo carries on into the next page" do
+    per_page = ArtworksController::PER_PAGE
+    add_artworks per_page - 1
+    visit artworks_url
+    click_on "extra-00"
+
+    # Onto the link that ends the strip.
+    execute_script "const strip = document.querySelector('[data-lightbox-target=strip]'); strip.scrollLeft = strip.scrollWidth"
+    assert_current_path artworks_path(page: 2)
+    within("dialog[open]") { assert_text "#{per_page + 1} / #{per_page + 1}" }
+  end
+
   test "a click beside the photo closes the lightbox, and one on it doesn't" do
     click_on "sunset"
 
@@ -89,9 +119,15 @@ class ArtworksTest < ApplicationSystemTestCase
       evaluate_script <<~JS
         (() => {
           const strip = document.querySelector("[data-lightbox-target=strip]")
-          const slides = strip.querySelectorAll("figure")
-          return slides[Math.round(strip.scrollLeft / strip.clientWidth)].querySelector("img").alt
+          const left = strip.getBoundingClientRect().left
+          return [ ...strip.querySelectorAll("figure") ].find(slide => Math.abs(slide.getBoundingClientRect().left - left) < 1)?.querySelector("img").alt
         })()
       JS
+    end
+
+    # Artworks sharing sunset.jpg's image, sorting between it and artwork.png: extra-00.jpg and on.
+    def add_artworks(count)
+      image = Picture.find_by!(filename: "sunset.jpg").image.blob
+      count.times { |i| Picture.create!(filename: format("extra-%02d.jpg", i), artwork: true, image: image) }
     end
 end

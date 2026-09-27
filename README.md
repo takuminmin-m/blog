@@ -45,7 +45,7 @@ The body is Markdown. Embed an image from articles/images like this:
 
 Fenced code blocks that name their language (```` ```ruby ````) are syntax-highlighted.
 
-Clicking a photo in the gallery enlarges it in place, where the ‹ › buttons, the arrow keys, or a swipe move to the previous or next photo. Its Info toggle lists what each photo's EXIF records: when it was taken, the camera and lens, focal length, aperture, shutter speed, and ISO. EXIF is read from JPEGs only, and nothing else in it, such as the location, is shown.
+The gallery shows 24 photos a page, newest first. Clicking one enlarges it in place, where the ‹ › buttons, the arrow keys, or a swipe move to the previous or next photo, on into the neighboring pages. Its Info toggle lists what each photo's EXIF records: when it was taken, the camera and lens, focal length, aperture, shutter speed, and ISO. EXIF is read from JPEGs only, and nothing else in it, such as the location, is shown.
 
 Run `bin/rails contents:sync` after adding, removing, or renaming files or changing front matter. Edits to a body show up without it. Image filenames must be unique across `articles/images` and `gallery`, and a sync stops at an article without a title or date, naming the file.
 

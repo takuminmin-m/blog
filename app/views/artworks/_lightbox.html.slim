@@ -1,10 +1,14 @@
 / The gallery's lightbox (lightbox_controller.js): a modal over the whole viewport with a slide
-/ per artwork. The slides sit in a strip that scroll-snaps, so swipes and trackpads move between
-/ photos natively, and the buttons and arrow keys scroll it too. Info shows each photo's EXIF
-/ under it.
+/ per artwork on the page. The slides sit in a strip that scroll-snaps, so swipes and trackpads
+/ move between photos natively, and the buttons and arrow keys scroll it too. Links to the
+/ neighboring pages end the strip, where going on reopens the lightbox on that page's nearest
+/ photo. Info shows each photo's EXIF under it.
+- edge_slide = "flex w-full shrink-0 snap-center snap-always items-center justify-center text-gray-400 hover:text-white"
 dialog class="group size-full max-h-none max-w-none bg-black text-sm text-gray-300" aria-label="Photos" data-lightbox-target="dialog" data-action="close->lightbox#focusThumbnail"
   .flex.size-full.flex-col
     .flex.min-h-0.flex-1.snap-x.snap-mandatory.overflow-x-auto class="[scrollbar-width:none]" data-lightbox-target="strip" data-action="scroll->lightbox#update"
+      - if pagination.previous_page
+        = link_to "‹ Newer photos", pagination_path(pagination.previous_page, anchor: "lightbox-last"), class: edge_slide, data: { lightbox_target: "previousPage" }
       - artworks.each do |artwork|
         - exif = exif_details(artwork)
         figure.flex.w-full.shrink-0.snap-center.snap-always.flex-col data-lightbox-target="slide"
@@ -17,6 +21,8 @@ dialog class="group size-full max-h-none max-w-none bg-black text-sm text-gray-3
                   div
                     dt.text-xs.text-gray-400 = label
                     dd.text-gray-100 = value
+      - if pagination.next_page
+        = link_to "Older photos ›", pagination_path(pagination.next_page, anchor: "lightbox-first"), class: edge_slide, data: { lightbox_target: "nextPage" }
     .grid.items-center.gap-2.px-2.pb-2 class="grid-cols-[1fr_auto_1fr]"
       div
         button class="rounded px-2 py-1 hover:bg-white/10 hover:text-white aria-disabled:opacity-40 aria-disabled:hover:bg-transparent aria-pressed:bg-white/15 aria-pressed:text-white" type="button" aria-pressed="false" data-lightbox-target="info" data-action="lightbox#toggleInfo" Info

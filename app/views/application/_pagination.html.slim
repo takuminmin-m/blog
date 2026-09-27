@@ -1,0 +1,16 @@
+/ Links to a Pagination's other pages, for lists that run newest first:
+/ "‹ Newer 1 … 4 5 6 7 8 … 12 Older ›". Nothing when everything fits on one page.
+- if pagination.pages > 1
+  nav.mt-10.flex.flex-wrap.items-center.justify-center.gap-1.text-sm.text-gray-600 aria-label="Pages"
+    - if pagination.previous_page
+      = link_to "‹ Newer", pagination_path(pagination.previous_page), rel: "prev", class: "rounded px-2 py-1 hover:bg-gray-100 hover:text-gray-900"
+    - pagination.series.each do |page|
+      - case page
+      - when :gap
+        span.px-1.text-gray-400 aria-hidden="true" …
+      - when pagination.page
+        span.rounded.bg-gray-100.px-2.py-1.font-medium.tabular-nums.text-gray-900 aria-current="page" = page
+      - else
+        = link_to page, pagination_path(page), class: "rounded px-2 py-1 tabular-nums hover:bg-gray-100 hover:text-gray-900"
+    - if pagination.next_page
+      = link_to "Older ›", pagination_path(pagination.next_page), rel: "next", class: "rounded px-2 py-1 hover:bg-gray-100 hover:text-gray-900"
