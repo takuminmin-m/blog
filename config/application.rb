@@ -28,7 +28,7 @@ module Blog
     config.x.content_root = config.root.join("content")
 
     # Shown in the header, page titles, and link previews.
-    config.x.site_name = "Blog"
+    config.x.site_name = "takuminmin-m"
 
     # config/routes.rb draws only the Active Storage routes that serve variants.
     config.active_storage.draw_routes = false
