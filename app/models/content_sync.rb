@@ -6,7 +6,8 @@ class ContentSync
   class MissingCheckout < StandardError; end
   class InvalidArticle < StandardError; end
 
-  IMAGES = "*.{jpg,JPG,jpeg,JPEG,png,PNG}"
+  EXTENSIONS = %w[ jpg JPG jpeg JPEG png PNG ]
+  IMAGES = "*.{#{EXTENSIONS.join(",")}}"
 
   def initialize(root = Rails.configuration.x.content_root)
     @root = root

@@ -7,11 +7,17 @@ import { Turbo } from "@hotwired/turbo-rails"
 // whose #lightbox-first or #lightbox-last reopens it on the next or previous page (see connect).
 // A thumbnail opens it at its photo instead of following its link, which still works without
 // JavaScript or in a new tab. Escape and the Close button close the dialog natively.
+//
+// While it's open, the address bar shows the photo's own page, the one its thumbnail links to,
+// so the URL copied from it or reloaded is the photo's. The gallery page's URL comes back before
+// leaving it by a Turbo visit and on closing, which keeps it in the history for going back to.
 export default class extends Controller {
-  static targets = [ "dialog", "link", "strip", "slide", "counter", "previous", "next", "info", "previousPage", "nextPage" ]
+  static targets = [ "dialog", "link", "strip", "slide", "counter", "previous", "next", "info", "share", "previousPage", "nextPage" ]
   static values = { offset: Number, total: Number }
 
   connect() {
+    this.shareTarget.hidden = !navigator.share && !navigator.clipboard
+
     const index = { "#lightbox-first": 0, "#lightbox-last": this.slideTargets.length - 1 }[location.hash]
     // Wait for the page itself rather than Turbo's preview of it from its cache.
     if (index === undefined || document.documentElement.hasAttribute("data-turbo-preview")) return
@@ -57,6 +63,30 @@ export default class extends Controller {
     this.infoTarget.ariaPressed = this.dialogTarget.toggleAttribute("data-info")
   }
 
+  // The share sheet where there is one, like on phones, or else the photo's link to paste.
+  async share() {
+    const link = this.linkTargets[this.current]
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: link.querySelector("img").alt, url: link.href })
+      } catch (error) {
+        if (error.name !== "AbortError") throw error
+      }
+    } else {
+      await navigator.clipboard.writeText(link.href)
+      this.shareTarget.textContent = "Copied"
+      setTimeout(() => this.shareTarget.textContent = "Share", 2000)
+    }
+  }
+
+  // On closing, and before a Turbo visit while the lightbox is open. By the dialog's close
+  // event, a task after closing, the browser may already be on another page's URL, which this
+  // leaves alone.
+  restoreLocation() {
+    if (location.href === this.photoLocation) history.replaceState(history.state, "", this.galleryLocation)
+  }
+
   // Only clicks on the element itself, not on the photo or the controls inside it.
   closeOnBackdrop(event) {
     if (event.target === event.currentTarget) this.close()
@@ -73,6 +103,7 @@ export default class extends Controller {
   }
 
   #open(index) {
+    this.galleryLocation = location.href
     this.#show(index)
     this.dialogTarget.showModal()
     this.#scrollToCurrent()
@@ -109,6 +140,9 @@ export default class extends Controller {
     this.previousTarget.ariaDisabled = index === 0 && !this.hasPreviousPageTarget
     this.nextTarget.ariaDisabled = index === this.slideTargets.length - 1 && !this.hasNextPageTarget
     this.infoTarget.ariaDisabled = !this.slideTargets[index].querySelector("figcaption")
+
+    this.photoLocation = this.linkTargets[index].href
+    history.replaceState(history.state, "", this.photoLocation)
 
     // Load the neighbors too, so they're ready to move on to.
     for (const slide of this.slideTargets.slice(Math.max(index - 1, 0), index + 2)) {

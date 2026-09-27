@@ -20,6 +20,13 @@ class ArtworksHelperTest < ActionView::TestCase
     }, exif_details(picture))
   end
 
+  test "the EXIF summary is the details as plain text on one line" do
+    picture = Picture.new(taken_at: Time.utc(2026, 9, 1, 18, 30, 15), camera: "Canon EOS R6", f_number: 2.8, iso: 400)
+
+    assert_equal "2026-09-01 18:30 · Canon EOS R6 · f/2.8 · ISO 400", exif_summary(picture)
+    assert_equal "", exif_summary(Picture.new)
+  end
+
   test "details the photo doesn't record are left out" do
     assert_empty exif_details(Picture.new)
     assert_equal [ "Aperture" ], exif_details(Picture.new(f_number: 4.0)).keys

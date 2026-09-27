@@ -12,6 +12,8 @@ class Picture < ApplicationRecord
   scope :artworks, -> { where(artwork: true) }
   # Newest first for date-prefixed or camera-numbered filenames.
   scope :newest_first, -> { order(filename: :desc) }
+  # By the name in a gallery URL, its filename without the extension (ArtworksHelper#artwork_title).
+  scope :named, ->(name) { where(filename: ContentSync::EXTENSIONS.map { |extension| "#{name}.#{extension}" }) }
 
   has_one_attached :image do |attachable|
     options = {

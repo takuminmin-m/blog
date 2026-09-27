@@ -13,6 +13,7 @@ class ArtworksTest < ApplicationSystemTestCase
     within "dialog[open]" do
       assert_text "1 / 2"
       assert_no_text "Canon EOS R6"
+      assert_current_path artwork_path("sunset")
 
       click_on "Info"
       assert_text "Canon EOS R6"
@@ -73,12 +74,12 @@ class ArtworksTest < ApplicationSystemTestCase
 
     within("dialog[open]") { assert_text "#{per_page} / #{per_page + 1}" }
     next_button.click
-    assert_current_path artworks_path(page: 2)
+    assert_current_path artwork_path("artwork")
     within("dialog[open]") { assert_text "#{per_page + 1} / #{per_page + 1}" }
     assert_equal "artwork", shown_photo
 
     find("dialog[open] button[aria-label='Previous photo']").click
-    assert_current_path artworks_path
+    assert_current_path artwork_path("extra-00")
     within("dialog[open]") { assert_text "#{per_page} / #{per_page + 1}" }
     assert_equal "extra-00", shown_photo
   end
@@ -91,8 +92,59 @@ class ArtworksTest < ApplicationSystemTestCase
 
     # Onto the link that ends the strip.
     execute_script "const strip = document.querySelector('[data-lightbox-target=strip]'); strip.scrollLeft = strip.scrollWidth"
-    assert_current_path artworks_path(page: 2)
     within("dialog[open]") { assert_text "#{per_page + 1} / #{per_page + 1}" }
+    assert_current_path artwork_path("artwork")
+  end
+
+  test "the address bar shows the photo's page while it's shown, and the gallery's after" do
+    click_on "sunset"
+    assert_current_path artwork_path("sunset")
+
+    next_button.click
+    assert_current_path artwork_path("artwork")
+
+    send_keys :escape
+    assert_no_selector "dialog[open]"
+    assert_current_path artworks_path
+
+    # Reloading, like visiting the URL copied from the address bar, shows the photo's page.
+    click_on "artwork"
+    assert_current_path artwork_path("artwork")
+    refresh
+    assert_selector "h1", text: "artwork"
+  end
+
+  test "going back from the next page returns to the gallery page, not the photo left on" do
+    per_page = ArtworksController::PER_PAGE
+    add_artworks per_page - 1
+    visit artworks_url
+    click_on "extra-00"
+    next_button.click
+    assert_current_path artwork_path("artwork")
+
+    go_back
+    assert_current_path artworks_path
+    assert_selector "h1", text: "Gallery"
+  end
+
+  test "Share opens the share sheet with the photo's page" do
+    execute_script "navigator.share = data => { window.shared = data; return Promise.resolve() }"
+    click_on "sunset"
+    next_button.click
+    within("dialog[open]") { click_on "Share" }
+
+    assert_equal({ "title" => "artwork", "url" => artwork_url("artwork") }, evaluate_script("window.shared"))
+  end
+
+  test "Share copies the photo's page's URL where there's no share sheet" do
+    execute_script "navigator.share = undefined; navigator.clipboard.writeText = text => { window.copied = text; return Promise.resolve() }"
+    click_on "sunset"
+
+    within "dialog[open]" do
+      click_on "Share"
+      assert_button "Copied"
+    end
+    assert_equal artwork_url("sunset"), evaluate_script("window.copied")
   end
 
   test "a click beside the photo closes the lightbox, and one on it doesn't" do

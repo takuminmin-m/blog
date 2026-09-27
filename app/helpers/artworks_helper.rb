@@ -19,6 +19,13 @@ module ArtworksHelper
     }.compact
   end
 
+  # The EXIF details on one line of plain text, for describing the photo in a link preview:
+  # "2026-09-01 18:30 · Canon EOS R6 · … · ISO 400". The values speak for themselves by their
+  # units, all but the ISO speed's.
+  def exif_summary(picture)
+    exif_details(picture).map { |label, value| label == "ISO" ? "ISO #{value}" : strip_tags(value) }.join(" · ")
+  end
+
   private
     # 1/250 s for the fractions of a second cameras show that way, 0.3 s or 30 s otherwise.
     # Close is enough, since some cameras store 1/60 as 0.0166.

@@ -1,0 +1,20 @@
+ruby:
+  title = artwork_title(@artwork)
+  exif = exif_details(@artwork)
+  provide :title, title
+  provide :description, exif_summary(@artwork) if exif.any?
+  provide :og_image, polymorphic_url(@artwork.image.variant(:gallery))
+
+/ An artwork's own page, for sharing: the gallery's lightbox shows its URL while showing the
+/ photo, and the link preview carries the photo.
+article
+  h1.mb-4.text-2xl.font-bold = title
+  = image_tag url_for(@artwork.image.variant(:gallery)), alt: title, class: "w-full rounded"
+  - if exif.any?
+    dl.mt-4.flex.flex-wrap.gap-x-6.gap-y-2.text-sm
+      - exif.each do |label, value|
+        div
+          dt.text-xs.text-gray-500 = label
+          dd = value
+  p.mt-8.text-sm
+    = link_to "‹ Gallery", artworks_path(page: (@page if @page > 1), anchor: dom_id(@artwork)), class: "text-gray-500 hover:text-gray-900"
