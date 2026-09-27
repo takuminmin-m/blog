@@ -66,7 +66,7 @@ content/
 
 `taken_at` is the camera's clock time, and EXIF often has no time zone for it: `Exif` labels it UTC and `Picture` skips time zone conversion for the attribute, so show it as stored (`strftime`), never converted to `Time.zone`.
 
-Active Storage uses the Disk service in dev and prod (`storage/`).
+Active Storage uses the Disk service in dev and prod (`storage/`). Pages link variants by proxy (`config.active_storage.resolve_model_to_route = :rails_storage_proxy`): the response is `Cache-Control: max-age=3155695200, public, immutable` without a cookie, which Cloudflare caches at its edge, and a variant's URL changes with its image, so nothing goes stale. Redirecting instead would hand out the Disk service's URL, which expires in minutes and can't be cached.
 
 Only variants can be fetched; originals can't be at all. An original has no watermark and keeps all its EXIF (GPS position included), and Active Storage's blob routes would serve it to anyone with the signed blob ID from any of its variant URLs. So `config.active_storage.draw_routes` is off, and `config/routes.rb` draws only what variants need: the representation routes (redirect and proxy), the Disk service's GET route, and the URL helpers `url_for(variant)` goes through, all copied from activestorage's `config/routes.rb`, so check them against it after a Rails upgrade. That leaves out direct uploads, which would let anyone store files, and `url_for` of an attachment or blob raises.
 

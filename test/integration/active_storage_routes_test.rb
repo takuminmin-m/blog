@@ -4,22 +4,31 @@ require "test_helper"
 # would serve the original, with no watermark and all its EXIF (GPS position included), for the
 # signed blob ID that every variant URL carries.
 class ActiveStorageRoutesTest < ActionDispatch::IntegrationTest
-  test "variants are served by redirect to the disk service and by proxy" do
+  # A variant's URL changes with its image, so caches such as Cloudflare's can keep it forever.
+  test "pages serve variants by proxy, cacheable by anyone forever" do
     src = thumbnail_src
+    assert_match %r{/representations/proxy/}, src
 
     get src
-    follow_redirect!
     assert_response :success
-    variant = response.body
-    assert_not_equal file_fixture("content/gallery/artwork.png").binread, variant, "served the original"
+    assert_not_equal file_fixture("content/gallery/artwork.png").binread, response.body, "served the original"
+    assert_equal "max-age=3155695200, public, immutable", response.headers["Cache-Control"]
+    assert_nil response.headers["Set-Cookie"], "Cloudflare doesn't cache a response that sets a cookie"
+  end
 
-    get src.sub("/representations/redirect/", "/representations/proxy/")
+  test "variants are also served by redirect to the disk service" do
+    src = thumbnail_src
+    get src
+    variant = response.body
+
+    get src.sub("/representations/proxy/", "/representations/redirect/")
+    follow_redirect!
     assert_response :success
     assert_equal variant, response.body
   end
 
   test "an original can't be fetched with the signed blob ID from its variant's URL" do
-    signed_blob_id = assert_match(%r{/representations/redirect/(?<id>[^/]+)/}, thumbnail_src)[:id]
+    signed_blob_id = assert_match(%r{/representations/proxy/(?<id>[^/]+)/}, thumbnail_src)[:id]
 
     %w[ blobs/redirect blobs/proxy blobs ].each do |route|
       get "#{ActiveStorage.routes_prefix}/#{route}/#{signed_blob_id}/artwork.png"

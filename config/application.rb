@@ -32,5 +32,10 @@ module Blog
 
     # config/routes.rb draws only the Active Storage routes that serve variants.
     config.active_storage.draw_routes = false
+
+    # Variant URLs are served by proxy, not by redirect to the Disk service's short-lived URL:
+    # the response is public and cacheable forever (its URL changes with the image), so
+    # Cloudflare's edge serves repeat requests instead of the app.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
   end
 end
