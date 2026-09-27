@@ -1,5 +1,28 @@
-h1.mb-6.text-sm.font-semibold.uppercase.tracking-wide.text-gray-500 Recent articles
-ul.space-y-3
-  = render @articles
-p.mt-8
-  = link_to "All articles →", articles_path, class: "text-sm text-gray-600 hover:text-gray-900"
+ruby:
+  provide :description, @intro.plain_text.truncate(120) if @intro
+
+h1.sr-only = site_name
+/ The introduction from static_pages/index.md, which the page goes without if it's missing.
+- if @intro
+  section.mb-12
+    .prose.prose-gray.max-w-none
+      = markdown(@intro.body)
+    p.mt-3
+      = link_to "About →", about_path, class: "text-sm text-gray-600 hover:text-gray-900"
+section
+  h2.mb-6.text-sm.font-semibold.uppercase.tracking-wide.text-gray-500 Recent articles
+  ul.space-y-3
+    = render @articles
+  p.mt-8
+    = link_to "All articles →", articles_path, class: "text-sm text-gray-600 hover:text-gray-900"
+- if @artworks.any?
+  / Uncropped, like the gallery, so the watermarked corner stays visible.
+  section.mt-12
+    h2.mb-6.text-sm.font-semibold.uppercase.tracking-wide.text-gray-500 Recent photos
+    ul class="grid grid-cols-2 items-start gap-2 sm:grid-cols-4"
+      - @artworks.each do |artwork|
+        li
+          = link_to artworks_path do
+            = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: artwork_title(artwork), loading: "lazy", class: "w-full rounded"
+    p.mt-8
+      = link_to "Gallery →", artworks_path, class: "text-sm text-gray-600 hover:text-gray-900"

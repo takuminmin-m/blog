@@ -25,6 +25,7 @@ content/
   articles/<name>.md       # served at /articles/<name>
   articles/images/         # images embedded in articles
   gallery/                 # images shown at /gallery
+  static_pages/index.md    # introduction at the top of the home page (optional)
   static_pages/about.md    # served at /about
   overlay.png              # watermark added to every image
 ```
