@@ -1,0 +1,45 @@
+# The blog on the Raspberry Pi: the app image that GitHub Actions builds, and cloudflared,
+# which connects it to Cloudflare through a tunnel, so the Pi opens no ports. Paths are
+# relative to this file, in the layout deploy/README.md sets up:
+#   <root>/app      this repository
+#   <root>/content  the content repository, plus the photos copied from the Mac
+#   <root>/storage  the databases and Active Storage files
+name: blog
+
+# Rotated and compressed, so logs can't fill the SD card.
+x-logging: &logging
+  driver: local
+  options:
+    max-size: 5m
+    max-file: "2"
+
+services:
+  app:
+    image: ghcr.io/takuminmin-m/blog:latest
+    restart: unless-stopped
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?set it in deploy/.env}
+      APP_HOST: ${APP_HOST:?set it in deploy/.env}
+      SOLID_QUEUE_IN_PUMA: "true"
+      # One image at a time, on one core: variants of large photos would otherwise
+      # take more memory than the Pi has.
+      JOB_THREADS: "1"
+      VIPS_CONCURRENCY: "1"
+    volumes:
+      - ../../storage:/rails/storage
+      - ../../content:/rails/content:ro
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost/up" ]
+      interval: 5m
+      timeout: 10s
+      start_period: 3m
+      start_interval: 5s
+    logging: *logging
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set it in deploy/.env}
+    logging: *logging

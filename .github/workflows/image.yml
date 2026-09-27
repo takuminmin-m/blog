@@ -1,0 +1,58 @@
+name: Image
+
+# Builds the production image for the Raspberry Pi (arm64) and pushes it to GHCR as
+# ghcr.io/takuminmin-m/blog:latest, which the Pi pulls every 5 minutes (deploy/bin/update).
+# It runs once CI has passed on a push to main, or by hand from the Actions tab.
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: image
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Only while the repository is public: the Pi pulls the image without credentials.
+    if: >-
+      !github.event.repository.private && (
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+      )
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha || github.sha }}
+          # Links the package to this repository on GitHub.
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

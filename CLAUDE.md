@@ -92,7 +92,15 @@ Only variants can be fetched; originals can't be at all. An original has no wate
 
 ### Infrastructure
 
-Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production adds separate SQLite databases for Solid Cache/Queue/Cable. `config/deploy.yml` (Kamal) is still the generator template with placeholder host/registry, and it enables Kamal's SSL proxy, which requires `config.assume_ssl`/`config.force_ssl` in `production.rb`.
+Rails 8 "Solid" defaults: SQLite everywhere (`storage/*.sqlite3`); production adds separate SQLite databases for Solid Cache/Queue/Cable.
+
+Production is a Raspberry Pi 3B+ (1 GB, SD card) behind a Cloudflare Tunnel; `deploy/README.md` is the runbook, and there's no Kamal:
+
+- `.github/workflows/image.yml` builds the arm64 image on an arm runner once CI passes on a push to main (`workflow_run`, or by hand) and pushes `ghcr.io/takuminmin-m/blog:latest`. It skips while the repository is private, since the Pi pulls without credentials.
+- On the Pi, `deploy/compose.yaml` runs the image and cloudflared, with `<root>/content` mounted read-only at `/rails/content` and `<root>/storage` at `/rails/storage`. `deploy/.env` (gitignored) holds `RAILS_MASTER_KEY`, `APP_HOST`, and `TUNNEL_TOKEN`.
+- `blog-update.timer` (installed by `deploy/bin/install`) runs `deploy/bin/update` every 5 minutes: it pulls both repositories and the image, and runs `contents:sync` when the content commit, the image, or the photo listing changed. It refuses to sync while there are no photos, since a fresh content clone has none and syncing would prune every Picture. The Mac sends the photos with `deploy/bin/push-photos <ssh host>`, which dates the gallery first.
+- Memory is tight, so Solid Queue runs inside Puma in async mode (`config/puma.rb`, when `SOLID_QUEUE_IN_PUMA`), with one job thread (`JOB_THREADS`) and `VIPS_CONCURRENCY=1`.
+- TLS ends at Cloudflare; `config.assume_ssl`/`config.force_ssl` stay on. `config.hosts` comes from `APP_HOST` (any host when unset), with `/up` excluded for Docker's health check.
 
 After `bin/rails app:update` (Rails upgrades), review the diff before keeping it: it comments out `assume_ssl`/`force_ssl` and drops the Solid Cache/Queue lines from `production.rb`, replaces the foreman-based `bin/dev` with a plain `rails server`, copies Active Storage upgrade migrations that are no-ops for this schema, and offers a fresh `config/application.rb` without this app's settings (without `draw_routes = false`, routes fail to load with "Invalid route name, already in use").
 
