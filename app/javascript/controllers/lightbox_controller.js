@@ -1,20 +1,31 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 
-// The gallery's lightbox: a modal <dialog> with a slide per artwork, in a strip that scroll-snaps
-// so swipes and trackpads move between photos natively; the buttons and arrow keys scroll it too.
+// The gallery's lightbox: a modal <dialog> with a slide per artwork on the page, in a strip that
+// scroll-snaps so swipes and trackpads move between photos natively; the buttons and arrow keys
+// scroll it too. Past either end of the page it goes on through the links ending the strip,
+// whose #lightbox-first or #lightbox-last reopens it on the next or previous page (see connect).
 // A thumbnail opens it at its photo instead of following its link, which still works without
 // JavaScript or in a new tab. Escape and the Close button close the dialog natively.
 export default class extends Controller {
-  static targets = [ "dialog", "link", "strip", "slide", "counter", "previous", "next", "info" ]
+  static targets = [ "dialog", "link", "strip", "slide", "counter", "previous", "next", "info", "previousPage", "nextPage" ]
+  static values = { offset: Number, total: Number }
+
+  connect() {
+    const index = { "#lightbox-first": 0, "#lightbox-last": this.slideTargets.length - 1 }[location.hash]
+    // Wait for the page itself rather than Turbo's preview of it from its cache.
+    if (index === undefined || document.documentElement.hasAttribute("data-turbo-preview")) return
+
+    history.replaceState(history.state, "", location.pathname + location.search)
+    this.#open(index)
+  }
 
   open(event) {
     // Leave modified clicks alone, e.g. for opening the image in a new tab.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
     event.preventDefault()
-    this.#show(event.params.index)
-    this.dialogTarget.showModal()
-    this.#scrollToCurrent()
+    this.#open(event.params.index)
   }
 
   previous(event) {
@@ -25,10 +36,19 @@ export default class extends Controller {
     this.#step(event, 1)
   }
 
-  // Follows the strip as it scrolls, by a swipe or by #scrollToCurrent.
+  // Follows the strip as it scrolls, by a swipe or by #scrollToCurrent. Coming to rest on a link
+  // at either end goes on to its page.
   update() {
-    const index = Math.round(this.stripTarget.scrollLeft / this.stripTarget.clientWidth)
-    if (this.dialogTarget.open && index !== this.current) this.#show(index)
+    if (!this.dialogTarget.open) return
+
+    const position = this.stripTarget.scrollLeft / this.stripTarget.clientWidth
+    const index = Math.round(position) - this.#leadingSlides
+
+    if (this.slideTargets[index]) {
+      if (index !== this.current) this.#show(index)
+    } else if (Math.abs(position - Math.round(position)) < 0.01) {
+      Turbo.visit(index < 0 ? this.previousPageTarget.href : this.nextPageTarget.href)
+    }
   }
 
   toggleInfo() {
@@ -52,24 +72,42 @@ export default class extends Controller {
     this.linkTargets[this.current]?.focus()
   }
 
-  #step(event, offset) {
-    const index = this.current + offset
-    if (!this.dialogTarget.open || !this.slideTargets[index]) return
-
-    event.preventDefault()
+  #open(index) {
     this.#show(index)
+    this.dialogTarget.showModal()
     this.#scrollToCurrent()
   }
 
+  #step(event, offset) {
+    if (!this.dialogTarget.open) return
+
+    event.preventDefault()
+    const index = this.current + offset
+
+    if (this.slideTargets[index]) {
+      this.#show(index)
+      this.#scrollToCurrent()
+    } else if (index < 0 && this.hasPreviousPageTarget) {
+      Turbo.visit(this.previousPageTarget.href)
+    } else if (index > 0 && this.hasNextPageTarget) {
+      Turbo.visit(this.nextPageTarget.href)
+    }
+  }
+
+  // The link to the previous page comes before the photos.
+  get #leadingSlides() {
+    return this.hasPreviousPageTarget ? 1 : 0
+  }
+
   #scrollToCurrent() {
-    this.stripTarget.scrollTo({ left: this.current * this.stripTarget.clientWidth, behavior: "instant" })
+    this.stripTarget.scrollTo({ left: (this.current + this.#leadingSlides) * this.stripTarget.clientWidth, behavior: "instant" })
   }
 
   #show(index) {
     this.current = index
-    this.counterTarget.textContent = `${index + 1} / ${this.slideTargets.length}`
-    this.previousTarget.ariaDisabled = index === 0
-    this.nextTarget.ariaDisabled = index === this.slideTargets.length - 1
+    this.counterTarget.textContent = `${this.offsetValue + index + 1} / ${this.totalValue}`
+    this.previousTarget.ariaDisabled = index === 0 && !this.hasPreviousPageTarget
+    this.nextTarget.ariaDisabled = index === this.slideTargets.length - 1 && !this.hasNextPageTarget
     this.infoTarget.ariaDisabled = !this.slideTargets[index].querySelector("figcaption")
 
     // Load the neighbors too, so they're ready to move on to.
