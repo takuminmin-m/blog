@@ -3,7 +3,7 @@ h1.mb-8.text-2xl.font-bold Gallery
 - if @artworks.any?
   / The lightbox's counter numbers the photos across all pages. It closes before Turbo caches
   / the page, since a snapshot of an open modal would come back as a non-modal dialog stuck open.
-  div data-controller="lightbox" data-lightbox-offset-value=@pagination.offset data-lightbox-total-value=@pagination.total data-action="turbo:before-cache@document->lightbox#close keydown.left@window->lightbox#previous keydown.right@window->lightbox#next"
+  div data-controller="lightbox" data-lightbox-offset-value=@pagination.offset data-lightbox-total-value=@pagination.total data-action="turbo:before-cache@document->lightbox#close keydown.left@window->lightbox#previous keydown.right@window->lightbox#next turbo:before-visit@document->lightbox#restoreLocation"
     / Columns rather than a cropped grid: artworks keep their proportions, and the watermark
     / in their south-east corner stays visible.
     ul class="columns-2 gap-2 sm:columns-3"

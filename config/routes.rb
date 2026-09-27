@@ -13,7 +13,8 @@ Rails.application.routes.draw do
 
   resources :articles, only: [ :index, :show ], param: :filename
   resources :article_tags, only: [ :index, :show ], param: :name
-  resources :artworks, only: :index, path: "gallery"
+  # An artwork's name is its filename without the extension, and it may hold dots.
+  resources :artworks, only: [ :index, :show ], path: "gallery", param: :name, constraints: { name: %r{[^/]+} }, format: false
 
   # Only the Active Storage routes that serve variants, copied from activestorage's
   # config/routes.rb (config.active_storage.draw_routes is off). The rest would serve a picture's

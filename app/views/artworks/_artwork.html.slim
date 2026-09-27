@@ -1,5 +1,6 @@
-/ A thumbnail that opens the gallery's lightbox at its photo (see _lightbox), or the larger
-/ variant on its own without JavaScript.
-li.mb-2.break-inside-avoid
-  = link_to url_for(artwork.image.variant(:gallery)), aria: { haspopup: "dialog" }, data: { action: "lightbox#open", lightbox_target: "link", lightbox_index_param: artwork_counter } do
+/ A thumbnail that opens the gallery's lightbox at its photo (see _lightbox), or the photo's own
+/ page without JavaScript or in a new tab, so hovering it doesn't prefetch that. The page links
+/ back to it by its id.
+li.mb-2.break-inside-avoid id=dom_id(artwork)
+  = link_to artwork_path(artwork_title(artwork)), aria: { haspopup: "dialog" }, data: { action: "lightbox#open", lightbox_target: "link", turbo_prefetch: false, lightbox_index_param: artwork_counter } do
     = image_tag url_for(artwork.image.variant(:gallery_thumb)), alt: artwork_title(artwork), loading: "lazy", class: "w-full rounded"
