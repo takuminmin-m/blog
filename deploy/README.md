@@ -33,8 +33,8 @@ The production setup (the site runs on the Pi 3B+ behind a Cloudflare Tunnel):
 sudo install -d -o $USER -g $USER /srv/blog
 git clone https://github.com/takuminmin-m/blog.git /srv/blog/app
 cd /srv/blog/app/deploy
-cp .env.example .env && nano .env   # RAILS_MASTER_KEY, APP_HOST, TUNNEL_TOKEN
-bin/install                         # clones content, creates storage, starts the timer
+cp .env.example .env && nano .env   # APP_HOST, TUNNEL_TOKEN
+bin/install                         # generates SECRET_KEY_BASE, clones content, creates storage, starts the timer
 ```
 
 Then, from the Mac:

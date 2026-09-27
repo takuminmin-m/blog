@@ -17,6 +17,9 @@ if [ "$(id -u)" != 1000 ]; then
   exit 1
 fi
 
+# The app has no credentials file; its only secret is this, made here and kept in .env.
+grep -q '^SECRET_KEY_BASE=' "$deploy/.env" || echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" >> "$deploy/.env"
+
 [ -d "$root/content/.git" ] || git clone https://github.com/takuminmin-m/blog_content.git "$root/content"
 mkdir -p "$root/storage"
 

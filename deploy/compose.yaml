@@ -18,7 +18,7 @@ services:
     image: ghcr.io/takuminmin-m/blog:latest
     restart: unless-stopped
     environment:
-      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?set it in deploy/.env}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?run deploy/bin/install to generate it}
       APP_HOST: ${APP_HOST:?set it in deploy/.env}
       SOLID_QUEUE_IN_PUMA: "true"
       # One image at a time, on one core: variants of large photos would otherwise
