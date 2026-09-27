@@ -10,6 +10,8 @@ class Picture < ApplicationRecord
   validates :artwork, inclusion: [ true, false ]
 
   scope :artworks, -> { where(artwork: true) }
+  # Newest first for date-prefixed or camera-numbered filenames.
+  scope :newest_first, -> { order(filename: :desc) }
 
   has_one_attached :image do |attachable|
     options = {
