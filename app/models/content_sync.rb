@@ -9,6 +9,12 @@ class ContentSync
   EXTENSIONS = %w[ jpg JPG jpeg JPEG png PNG ]
   IMAGES = "*.{#{EXTENSIONS.join(",")}}"
 
+  # The images in +dir+. On a case-insensitive file system (macOS's) the pattern matches each
+  # file once per spelling of its extension, all returned as the file's own name, hence uniq.
+  def self.images(dir)
+    dir.glob(IMAGES).uniq
+  end
+
   def initialize(root = Rails.configuration.x.content_root)
     @root = root
   end
@@ -55,7 +61,7 @@ class ContentSync
     end
 
     def sync_pictures(dir, artwork:)
-      paths = dir.glob(IMAGES)
+      paths = self.class.images(dir)
       Picture.where(artwork: artwork).where.not(filename: paths.map { |path| path.basename.to_s }).destroy_all
 
       paths.each do |path|

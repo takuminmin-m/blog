@@ -10,6 +10,12 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # A scratch copy of the fixture content for tests that change files.
+    def with_content_copy
+      Dir.mktmpdir do |dir|
+        FileUtils.cp_r(Rails.configuration.x.content_root.children, dir)
+        yield Pathname(dir)
+      end
+    end
   end
 end

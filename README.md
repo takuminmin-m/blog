@@ -48,6 +48,8 @@ Fenced code blocks that name their language (```` ```ruby ````) are syntax-highl
 
 The gallery shows 24 photos a page, newest first. Clicking one enlarges it in place, where the ‹ › buttons, the arrow keys, or a swipe move to the previous or next photo, on into the neighboring pages. Its Info toggle lists what each photo's EXIF records: when it was taken, the camera and lens, focal length, aperture, shutter speed, and ISO. EXIF is read from JPEGs only, and nothing else in it, such as the location, is shown.
 
+Gallery photos are named `<shooting date>-<name>`, like `2026-09-21-P1200205.jpg`, so they come out newest first. Put them in under the camera's names and `bin/rails contents:date_gallery` adds the date from each photo's EXIF, listing what it renamed and what it couldn't (a photo without a shooting date, or a new name already taken).
+
 Run `bin/rails contents:sync` after adding, removing, or renaming files or changing front matter. Edits to a body show up without it. Image filenames must be unique across `articles/images` and `gallery`, and a sync stops at an article without a title or date, naming the file.
 
 ## Development
