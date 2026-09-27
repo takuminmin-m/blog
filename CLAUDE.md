@@ -61,8 +61,9 @@ content/
 
 ### Pictures
 
-`Picture` declares named variants: the article ones are `preprocessed: true` and the gallery ones `preprocessed: :artwork?`, so attaching enqueues an `ActiveStorage::TransformJob` per preprocessed variant. Every variant composites `content/overlay.png` at the south-east corner, and two details of that config are load-bearing:
+`Picture` declares named variants: the article ones are `preprocessed: true` and the gallery ones `preprocessed: :artwork?`, so attaching enqueues an `ActiveStorage::TransformJob` per preprocessed variant. Every variant composites `content/overlay.png` at the south-east corner, and three details of that config are load-bearing:
 
+- `OVERLAY` is `Watermark.path` (`app/models/watermark.rb`), a copy of the watermark in `tmp/watermarks/` named by its digest, not the content path. A variant's URL comes from its transformations, so the digest gives variants new URLs when the watermark changes; with the content path they'd keep theirs, and Cloudflare, which keeps variants forever, would go on serving the old watermark. It's read when `Picture` loads, so a new watermark takes an app restart.
 - `OVERLAY` is a String because the transformations become Active Job arguments, and Active Job can't serialize a Pathname (attaching raised `ActiveJob::SerializationError`).
 - `composite:` is an Array, `[ path, { gravity: } ]`. A Hash would be splatted into keyword arguments, but image_processing's `composite` takes the overlay positionally (`ArgumentError`).
 
