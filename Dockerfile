@@ -4,7 +4,7 @@
 # This Dockerfile is designed for production, not development. GitHub Actions builds it for the
 # Raspberry Pi (.github/workflows/image.yml), which runs it with deploy/compose.yaml. By hand:
 # docker build -t blog .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name blog blog
+# docker run -d -p 80:80 -e SECRET_KEY_BASE=<value from bin/rails secret> --name blog blog
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
