@@ -1,0 +1,29 @@
+#!/bin/bash
+# Copies the photos, which the content repository doesn't track, from this Mac's content/
+# to the Pi, then runs the Pi's update so they're synced right away.
+#
+#   deploy/bin/push-photos <ssh host>    e.g. deploy/bin/push-photos pi@blog.local
+#
+# It first dates undated gallery photos (contents:date_gallery), which has to happen here,
+# where the originals are. The Pi's copy mirrors this one: photos removed here go there too.
+# BLOG_ROOT is the Pi's <root> (deploy/README.md), /srv/blog unless set.
+set -euo pipefail
+
+host=${1:?usage: deploy/bin/push-photos <ssh host>}
+root=${BLOG_ROOT:-/srv/blog}
+cd "$(dirname "$0")/../.."
+
+bin/rails contents:date_gallery
+
+# An empty or missing checkout would otherwise delete every photo on the Pi.
+if [ -z "$(find content/articles/images content/gallery -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) -print -quit)" ]; then
+  echo "No photos in content/: is the content checkout there?" >&2
+  exit 1
+fi
+
+for dir in articles/images gallery; do
+  rsync --recursive --times --delete --exclude .gitkeep --exclude .DS_Store \
+    "content/$dir/" "$host:$root/content/$dir/"
+done
+
+ssh "$host" "$root/app/deploy/bin/update"

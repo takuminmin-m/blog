@@ -39,9 +39,11 @@
 # Ignore CI service files.
 /.github
 
-# Ignore Kamal files.
-/config/deploy*.yml
-/.kamal
+# Ignore the content checkout, which the server mounts at run time.
+/content
+
+# Ignore the Raspberry Pi's deployment files.
+/deploy
 
 # Ignore development files
 /.devcontainer

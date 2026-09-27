@@ -1,0 +1,46 @@
+#!/bin/bash
+# Brings the Pi up to date, run every 5 minutes by blog-update.timer (deploy/bin/install):
+# pulls this repository, the content repository, and the app image, restarts what changed,
+# and syncs content/ into the database when the content, the photos, or the image changed.
+set -euo pipefail
+
+deploy=$(cd "$(dirname "$0")/.." && pwd)
+root=$(cd "$deploy/../.." && pwd)
+content=$root/content
+cd "$deploy"
+
+# One run at a time: deploy/bin/push-photos runs this too.
+exec {lock}>"$root/.update.lock"
+flock "$lock"
+
+git -C "$root/app" pull --ff-only --quiet
+git -C "$content" pull --ff-only --quiet
+
+docker compose --progress quiet pull
+docker compose --progress quiet up --detach --wait --remove-orphans
+docker image prune --force > /dev/null
+
+photos() {
+  find "$content/articles/images" "$content/gallery" -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) "$@"
+}
+
+# The photos aren't in the content repository, so a fresh clone has none until
+# push-photos copies them, and syncing then would delete every Picture.
+if [ -z "$(photos -print -quit)" ]; then
+  echo "No photos in $content yet: copy them from the Mac with deploy/bin/push-photos." >&2
+  exit 1
+fi
+
+# What the last sync saw: the content commit, the app image, and the photos' names,
+# sizes, and times. Git doesn't track the photos, so they're compared by listing.
+state=$(
+  git -C "$content" rev-parse HEAD
+  docker inspect --format '{{.Image}}' "$(docker compose ps --quiet app)"
+  photos -printf '%p %s %T@\n' | sort | sha256sum
+)
+state_file=$root/.synced
+if [ "$state" != "$(cat "$state_file" 2> /dev/null)" ]; then
+  docker compose exec --no-TTY app bin/rails contents:sync
+  echo "$state" > "$state_file"
+fi

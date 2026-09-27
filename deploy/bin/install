@@ -1,0 +1,50 @@
+#!/bin/bash
+# Sets up the Pi once, run from this repository's checkout at <root>/app (deploy/README.md):
+# clones the content repository beside it, creates the storage directory, and installs the
+# systemd timer that runs deploy/bin/update every 5 minutes as the current user.
+set -euo pipefail
+
+deploy=$(cd "$(dirname "$0")/.." && pwd)
+root=$(cd "$deploy/../.." && pwd)
+
+if [ ! -f "$deploy/.env" ]; then
+  echo "Create $deploy/.env from .env.example first." >&2
+  exit 1
+fi
+# The container runs as uid 1000 and writes to storage/, which this user will own.
+if [ "$(id -u)" != 1000 ]; then
+  echo "Run this as the Pi's first user (uid 1000), not $(id -un)." >&2
+  exit 1
+fi
+
+[ -d "$root/content/.git" ] || git clone https://github.com/takuminmin-m/blog_content.git "$root/content"
+mkdir -p "$root/storage"
+
+sudo tee /etc/systemd/system/blog-update.service > /dev/null <<UNIT
+[Unit]
+Description=Update the blog's image and content
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=$(id -un)
+ExecStart=$deploy/bin/update
+UNIT
+
+sudo tee /etc/systemd/system/blog-update.timer > /dev/null <<UNIT
+[Unit]
+Description=Update the blog every 5 minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+UNIT
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now blog-update.timer
+echo "Installed. Copy the photos from the Mac with deploy/bin/push-photos, then follow the"
+echo "updates with: journalctl -u blog-update -f"

@@ -79,12 +79,11 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Enable DNS rebinding protection and other `Host` header attacks: answer only the site's
+  # domains, APP_HOST (comma-separated; deploy/.env on the server). Without it, any host is.
+  config.hosts = ENV.fetch("APP_HOST", "").split(",")
+
+  # Skip DNS rebinding protection for the default health check endpoint, which Docker's
+  # health check requests as localhost.
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
