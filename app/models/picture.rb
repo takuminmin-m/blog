@@ -1,7 +1,6 @@
 class Picture < ApplicationRecord
-  # A String, not a Pathname: preprocessed variants hand their transformations to
-  # ActiveStorage::TransformJob, and Active Job can't serialize a Pathname.
-  OVERLAY = Rails.configuration.x.content_root.join("overlay.png").to_s
+  # Read once, when the app loads, so a changed watermark takes a restart.
+  OVERLAY = Watermark.path
 
   # The camera's clock time from EXIF (see Exif#taken_at), which Time.zone mustn't shift.
   self.skip_time_zone_conversion_for_attributes = [ :taken_at ]
