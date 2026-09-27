@@ -4,7 +4,7 @@ class ArticleTagsControllerTest < ActionDispatch::IntegrationTest
   test "index links to each tag by name" do
     get article_tags_url
     assert_response :success
-    assert_select "title", "Tags | Blog"
+    assert_select "title", "Tags | takuminmin-m"
     assert_equal [ article_tag_path("rails"), article_tag_path("ruby") ], css_select("main a").pluck("href")
     assert_select "main a", "#ruby"
   end
@@ -12,7 +12,7 @@ class ArticleTagsControllerTest < ActionDispatch::IntegrationTest
   test "show lists the tag's articles newest first" do
     get article_tag_url("rails")
     assert_response :success
-    assert_select "title", "#rails | Blog"
+    assert_select "title", "#rails | takuminmin-m"
     assert_equal [ article_path("second-post"), article_path("hello-world") ], css_select("main a[href^='/articles/']").pluck("href")
   end
 
