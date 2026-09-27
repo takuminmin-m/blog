@@ -151,13 +151,4 @@ class ContentSyncTest < ActiveSupport::TestCase
       ContentSync.new.sync
     end
   end
-
-  private
-    # A scratch copy of the fixture content for tests that change files.
-    def with_content_copy
-      Dir.mktmpdir do |dir|
-        FileUtils.cp_r(Rails.configuration.x.content_root.children, dir)
-        yield Pathname(dir)
-      end
-    end
 end
