@@ -57,7 +57,6 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     get article_url("hello-world")
     src = css_select("img[alt='A white photo']").first["src"]
     get src
-    follow_redirect!
 
     assert_response :success
     image = Vips::Image.new_from_buffer(response.body, "")
