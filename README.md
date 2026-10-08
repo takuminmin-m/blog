@@ -59,4 +59,4 @@ Run `bin/rails contents:sync` after adding, removing, or renaming files or chang
 
 ## Deployment
 
-Not set up yet.
+The site runs on a Raspberry Pi 3B+ behind a Cloudflare Tunnel. GitHub Actions builds the Docker image, and the Pi pulls it and the content every 5 minutes. See [deploy/README.md](deploy/README.md) for the setup, updates, and backups.

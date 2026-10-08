@@ -13,7 +13,7 @@ The production setup (the site runs on the Pi 3B+ behind a Cloudflare Tunnel):
 /srv/blog/          # <root>. Any other directory works too
   app/              # this repository (deploy/.env lives only here)
   content/          # the content repository plus the photos sent from the Mac
-  storage/          # SQLite and the Active Storage files. The only thing to back up
+  storage/          # SQLite and the Active Storage files. Rebuilt from content/, so it needs no backup
 ```
 
 ## Prerequisites
@@ -62,4 +62,13 @@ docker compose exec app bin/rails console
 ```
 
 - To stop automatic updates: `sudo systemctl disable --now blog-update.timer`
-- Back up `/srv/blog/storage` (and `deploy/.env`). You can recreate everything else: the photos are on the Mac and the variants are regenerated.
+
+## Backups
+
+`storage/` needs none: the databases are an index of `content/`, and the Active Storage files are copies of its images and their variants, so `contents:sync` rebuilds them. The variants get new URLs, so Cloudflare's cache starts cold, and regenerating them takes a while on the Pi.
+
+What can't be rebuilt:
+
+- The articles are in the content repository on GitHub.
+- The photos are in no repository: the only copies are on the Mac and, mirrored by `push-photos`, on the Pi. Nothing backs them up off-site yet.
+- `deploy/.env` holds `APP_HOST` and `TUNNEL_TOKEN` (reissued from Cloudflare) and `SECRET_KEY_BASE`. Losing the secret only changes the variants' URLs, but keep a copy of the file in a password manager.
