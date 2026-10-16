@@ -44,6 +44,7 @@ module MarkdownHelper
       fenced_code_blocks: true,
       lax_spacing: true,
       strikethrough: true,
+      tables: true,
       superscript: true
     }
 
