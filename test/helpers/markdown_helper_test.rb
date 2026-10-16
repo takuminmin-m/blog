@@ -23,6 +23,13 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_not_includes html, "<script>"
   end
 
+  test "renders pipe tables" do
+    table = Nokogiri::HTML5.fragment(markdown("| A | B |\n| --- | --- |\n| 1 | 2 |\n")).at("table")
+
+    assert_equal [ "A", "B" ], table.css("th").map(&:text)
+    assert_equal [ "1", "2" ], table.css("td").map(&:text)
+  end
+
   test "an images/ reference becomes the picture's watermarked article variant" do
     picture = Picture.create!(filename: "photo.png", artwork: false,
       image: { io: StringIO.new(file_fixture("content/articles/images/photo.png").binread), filename: "photo.png" })
