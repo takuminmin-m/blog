@@ -23,6 +23,17 @@ class MarkdownHelperTest < ActionView::TestCase
     assert_not_includes html, "<script>"
   end
 
+  test "a collapse option folds a code block into a details with its line count" do
+    details = Nokogiri::HTML5.fragment(markdown("```js:collapse\nlet a = 1\nlet b = 2\n```\n")).at("details")
+
+    assert_equal "Show code (2 lines)", details.at("summary").text
+    assert_equal "let", details.at("pre.highlight.javascript code span.kd").text
+  end
+
+  test "code blocks without a collapse option are not folded" do
+    assert_not_includes markdown("```js\nlet a = 1\n```\n"), "<details"
+  end
+
   test "renders pipe tables" do
     table = Nokogiri::HTML5.fragment(markdown("| A | B |\n| --- | --- |\n| 1 | 2 |\n")).at("table")
 

@@ -14,6 +14,21 @@
   }
 }
 
+// A code block folded by "collapse": the summary reads as a link, and the open block sits
+// under it without the typography plugin's extra margin.
+.prose details.collapsible-code {
+  margin: 1.25em 0;
+
+  > summary {
+    cursor: pointer;
+    color: #4b5563;
+  }
+
+  > pre {
+    margin-top: 0.75em;
+  }
+}
+
 // The page behind a modal <dialog>, such as the gallery's lightbox over the whole viewport,
 // shouldn't scroll along with the wheel.
 html:has(dialog:modal) {
