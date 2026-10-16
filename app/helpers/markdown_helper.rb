@@ -9,13 +9,23 @@ module MarkdownHelper
   #
   # Code blocks are highlighted by Rouge as <pre class="highlight <language>">, styled by
   # app/assets/stylesheets/_syntax.scss. Without a language they stay plain text unless the
-  # code names its own (a shebang, say).
+  # code names its own (a shebang, say). A ":collapse" after the language (```js:collapse) folds
+  # the block into a <details> showing its line count, for code too long to scroll past.
   class Renderer < Redcarpet::Render::HTML
     include Rouge::Plugins::Redcarpet
 
     def initialize(view, options)
       super(options)
       @view = view
+    end
+
+    def block_code(code, language)
+      language, option = language.to_s.split(":", 2)
+      html = super(code, language)
+      return html unless option == "collapse"
+
+      summary = @view.pluralize(code.lines.count, "line")
+      @view.content_tag(:details, @view.content_tag(:summary, "Show code (#{summary})") + html.html_safe, class: "collapsible-code") # rubocop:disable Rails/OutputSafety -- Rouge escapes the code
     end
 
     def image(link, title, alt_text)
