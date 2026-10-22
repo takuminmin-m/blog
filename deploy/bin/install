@@ -1,7 +1,8 @@
 #!/bin/bash
 # Sets up the Pi once, run from this repository's checkout at <root>/app (deploy/README.md):
 # clones the content repository beside it, creates the storage directory, and installs the
-# systemd timer that runs deploy/bin/update every 5 minutes as the current user.
+# systemd timer that runs deploy/bin/update every 5 minutes as the current user, and turns on
+# unattended OS upgrades.
 set -euo pipefail
 
 deploy=$(cd "$(dirname "$0")/.." && pwd)
@@ -47,7 +48,31 @@ OnUnitActiveSec=5min
 WantedBy=timers.target
 UNIT
 
+# OS upgrades: Debian's security updates plus the Raspberry Pi archive, run at 02:30 (not the
+# default 06:00) so that a reboot an update needs happens at 03:00, and only then.
+sudo apt-get install -y unattended-upgrades
+
+sudo tee /etc/apt/apt.conf.d/20auto-upgrades > /dev/null <<CONF
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+CONF
+
+sudo tee /etc/apt/apt.conf.d/52unattended-upgrades-local > /dev/null <<'CONF'
+Unattended-Upgrade::Origins-Pattern:: "origin=Raspberry Pi Foundation,codename=${distro_codename}";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+CONF
+
+sudo mkdir -p /etc/systemd/system/apt-daily-upgrade.timer.d
+sudo tee /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf > /dev/null <<CONF
+[Timer]
+OnCalendar=
+OnCalendar=*-*-* 02:30
+RandomizedDelaySec=10m
+CONF
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now blog-update.timer
+sudo systemctl restart apt-daily-upgrade.timer
 echo "Installed. Copy the photos from the Mac with deploy/bin/push-photos, then follow the"
 echo "updates with: journalctl -u blog-update -f"
