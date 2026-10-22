@@ -3,7 +3,7 @@
 The production setup (the site runs on the Pi 3B+ behind a Cloudflare Tunnel):
 
 - On every push to main that passes CI, GitHub Actions builds the arm64 image and pushes it to `ghcr.io/takuminmin-m/blog:latest` (`.github/workflows/image.yml`).
-- On the Pi, `blog-update.timer` runs `deploy/bin/update` every 5 minutes: it pulls this repository, the content repository, and the image, then runs `contents:sync` when the content or the image changed.
+- On the Pi, `blog-update.timer` runs `deploy/bin/update` every 5 minutes: it pulls this repository, the content repository, and the image, restarts a container that went unhealthy, then runs `contents:sync` when the content or the image changed.
 - OS packages upgrade themselves (`unattended-upgrades`, set up by `bin/install`): Debian security and Raspberry Pi updates at about 02:30, and the Pi reboots at 03:00 only when an update needs it (`/var/run/reboot-required`). The containers come back by themselves. Check with `sudo cat /var/log/unattended-upgrades/unattended-upgrades.log`.
 - Photos aren't in the content repository. Send them from the Mac with `deploy/bin/push-photos`.
 - The Pi opens no ports. cloudflared connects to Cloudflare, and TLS ends at Cloudflare.
