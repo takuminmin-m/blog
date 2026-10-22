@@ -16,6 +16,11 @@ flock "$lock"
 git -C "$root/app" pull --ff-only --quiet
 git -C "$content" pull --ff-only --quiet
 
+# Docker only marks a container unhealthy; restart it here, before `up --wait` below
+# would fail on it.
+docker ps --filter health=unhealthy --filter label=com.docker.compose.project=blog --quiet |
+  xargs --no-run-if-empty docker restart
+
 docker compose --progress quiet pull
 docker compose --progress quiet up --detach --wait --remove-orphans
 docker image prune --force > /dev/null
