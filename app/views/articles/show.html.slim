@@ -14,3 +14,14 @@ article
         = link_to "##{article_tag.name}", article_tag_path(article_tag.name), class: "hover:text-gray-900"
   .prose.prose-gray.max-w-none
     = markdown(@article.body)
+  - newer, older = @article.newer, @article.older
+  - if newer || older
+    nav.mt-12.flex.flex-col.gap-3.border-t.border-gray-200.pt-6.text-sm aria-label="Articles" class="sm:flex-row sm:justify-between sm:gap-6"
+      - if newer
+        = link_to article_path(newer.filename), rel: "prev", class: "group" do
+          span.text-gray-500 ‹ Newer
+          span.block.font-medium.text-gray-900 class="mt-0.5 group-hover:underline" = newer.title
+      - if older
+        = link_to article_path(older.filename), rel: "next", class: "group sm:ml-auto sm:text-right" do
+          span.text-gray-500 Older ›
+          span.block.font-medium.text-gray-900 class="mt-0.5 group-hover:underline" = older.title

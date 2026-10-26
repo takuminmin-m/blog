@@ -64,6 +64,16 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ 255, 0, 0 ], image.getpoint(image.width - 1, image.height - 1).first(3), "overlay pixel"
   end
 
+  test "show links the newer and older articles at the bottom" do
+    get article_url("hello-world")
+    assert_select "nav[aria-label=Articles] a[rel=prev][href=?]", article_path("second-post"), text: /Second post/
+    assert_select "nav[aria-label=Articles] a[rel=next]", count: 0
+
+    get article_url("second-post")
+    assert_select "nav[aria-label=Articles] a[rel=next][href=?]", article_path("hello-world"), text: /Hello, world/
+    assert_select "nav[aria-label=Articles] a[rel=prev]", count: 0
+  end
+
   test "show responds 404 to an unknown article" do
     get article_url("no-such-post")
     assert_response :not_found
