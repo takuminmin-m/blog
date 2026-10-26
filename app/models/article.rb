@@ -11,6 +11,19 @@ class Article < ApplicationRecord
 
   delegate :body, to: :document
 
+  # The articles just before and after this one in newest_first order.
+  def newer
+    Article.where(published_on: published_on, id: (id + 1)..)
+      .or(Article.where(published_on: published_on.next_day..))
+      .order(published_on: :asc, id: :asc).first
+  end
+
+  def older
+    Article.where(published_on: published_on, id: ...id)
+      .or(Article.where(published_on: ...published_on))
+      .newest_first.first
+  end
+
   def document
     @document ||= MarkdownDocument.read(Rails.configuration.x.content_root.join("articles/#{filename}.md"))
   end
